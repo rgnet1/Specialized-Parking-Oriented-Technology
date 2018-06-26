@@ -1,0 +1,18 @@
+Manually authenticating parking spots:
+
+sql commands:
+
+//UPDATE spaces SET Status ='closed' WHERE Status ='busy';
+
+UPDATE spaces SET Complete ='0',User_ID ='1395938', Status = 'closed' WHERE Status ='busy' AND Spots='1';
+
+
+UPDATE spaces SET Complete ='0',User_ID ='1427605', Status = 'closed' WHERE Status ='busy' AND Spots='2';
+
+UPDATE spaces SET Complete ='0',User_ID ='1429392', Status = 'closed' WHERE Status ='busy' AND Spots='3';
+
+UPDATE spaces SET Complete ='0',User_ID ='1463728', Status = 'closed' WHERE Status ='busy' AND Spots='4';
+
+
+//      MARIO
+UPDATE spaces SET Complete ='0',User_ID ='1463728', Status = 'closed' WHERE Status ='open' AND Spots='4' AND Parking_Lot='EastRemote';

@@ -1,0 +1,365 @@
+
+
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <title>Parking Management - Baskin</title>
+  <meta name="description" content="website description" />
+  <meta name="keywords" content="website keywords, website keywords" />
+  <meta http-equiv="content-type" content="text/html; charset=windows-1252" />
+  <link rel="stylesheet" type="text/css" href="style/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body onload="myOnLoad()">
+  <div id="main">
+    <div id="header">
+      <div id="logo">
+        <div id="logo_text">
+          <!-- class="logo_colour", allows you to change the colour of the text -->
+          <h1><a href="">Parking Management <span class="logo_colour">UC Santa Cruz</span></a></h1>
+          <h2>Administrator Website.</h2>
+        </div>
+      </div>
+      <div id="menubar">
+        <ul id="menu">
+          <!-- put class="selected" in the li tag for the selected page - to highlight which page you're on -->
+          <li><a href="/">Home</a></li>
+          <li><a href="Users">User Accounts</a></li>
+          <li><a href="Logs">Logs</a></li>
+          <li><a href="NorthRemote">North Remote Lot</a></li>
+          <li><a href="EastRemote">East Remote Lot</a></li>
+          <li class="selected"><a href="Baskin">Baskin Lot</a></li>
+        </ul>
+      </div>
+    </div>
+    <div id="content_header"></div>
+    <!--<div id="site_content">
+      
+      <div id="content"> -->
+        <!-- insert the page content here -->
+      <div class = "myContainer" style="margin:0 auto">
+        <div style="text-align:center">
+          <h1>Baskin</h1>
+          <fieldset>
+          <legend><h1>Legend</h1></legend>
+            <div class="key green"> <p> <font size="3" > <span class="tab" >Open&nbsp;spot</span></font></p></div>
+            <div class="key blue"> <p> <font size="3" > <span class="tab" >Legal&nbsp;User&nbsp;(Spot&nbsp;in&nbsp;use)</span></font></p></div>
+            <div class="key yellow"><p> <font size="3" > <span class="tab">Busy&nbsp;(verification&nbsp;in&nbsp;progress)</span></font> </p></div>
+            <div class="key red" ><p><font size="3" > <span class="tab" >Illegal&nbsp;user</span></font></p></div>
+            <div class="key grey" ><p><font size="3" > <span class="tab" >Database&nbsp;is&nbsp;offline</span></font></p></div>
+            <div class="key orange" ><p><font size="3" > <span class="tab" >Broken&nbsp;sensor</span></font></p></div>
+          </fieldset>
+          
+        </div>
+         <center><p> <font size="4"><br>&nbsp;&nbsp;&nbsp;Click a parking spot to see details</font></p></center>
+      </div>
+<!--<div class = "myContainer" style="margin:0 auto">   -->
+<div class="row">
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div id = '1' class="parkingSpace" onclick="parkingDetailsConfigure(this,'Baskin','1');" style="background:grey;border:3px solid black;">
+    1
+  </div>
+  <div id='2' class="parkingSpace" onclick="parkingDetailsConfigure(this,'Baskin','2');" style="background:grey;border:3px solid black;">
+    2
+  </div>
+   <div id = '3' class="parkingSpace" onclick="parkingDetailsConfigure(this,'Baskin','3');" style="background:grey;border:3px solid black;">
+    3
+   </div>
+      <div id = '4' class="parkingSpace" onclick="parkingDetailsConfigure(this,'Baskin','4');" style="background:grey;border:3px solid black;">
+    4
+  </div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+ </div>
+
+
+<div class="row">
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div id='5' class="parkingSpace" onclick="parkingDetailsConfigure(this,'Baskin','5');" style="background:grey;border:3px solid black;">
+    5
+  </div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+</div>
+
+
+
+<div class="row">
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div id='6' class="parkingSpace" onclick="parkingDetailsConfigure(this,'Baskin','6');" style="background:grey;border:3px solid black;">
+    6
+  </div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+</div>
+
+
+
+<div class="row">
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div id='7' class="parkingSpace" onclick="parkingDetailsConfigure(this,'Baskin','7');" style="background:grey;border:3px solid black;">
+    7
+  </div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+</div>
+
+
+
+  <div class="row">
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div id='8' class="parkingSpace" onclick="parkingDetailsConfigure(this,'Baskin','8');" style="background:grey;border:3px solid black;">
+    8
+  </div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  </div>
+
+<!-- Print Parking Details Pop Up of a spot (hidden by default) -->
+<div id="parkingDetails" class="parkingDetails">
+
+<div id="parkingDetailsContent" class = "parkingDetails-content">
+   
+ <!-- Pop Up format -->  
+  <span class="close">&times;</span>
+  <div id="textbox">
+  <h2 id="title" class="alignleft"></h2>
+  <h2 id="title2" color ="white" class="alignright"></h2>
+  </div>
+  <div style="clear: both;"></div>
+    <!-- <span onclick="this.parentElement.style.display='none'" class="closebtn">&times;</span> -->
+  <p color="white" id="details"></p>
+  <p color="white" id="userInfo"></p>
+  </div>
+  </div>
+
+
+
+
+
+<!-- The following code is Java Script  logic for getting information
+      to display on the website 
+-->
+<script>
+//Refresh interval gets a new upate every 500 ms (5 seconds)
+var REFRESH_INTERVAL = 5000;
+
+function parkingDetailsConfigure(parkingSpace, lot, spot) {
+  var parkingDetails = document.getElementById("parkingDetails");
+  var parkingDetailsContent = document.getElementById("parkingDetailsContent");
+  
+  // Get the <span> element that closes the pop up
+  var span = document.getElementsByClassName("close")[0];
+  parkingDetails.style.display = "block";
+
+  // When the user clicks on <span> (x), close the pop up
+  span.onclick = function() {
+    parkingDetails.style.display = "none";
+  }
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == parkingDetails) {
+        parkingDetails.style.display = "none";
+    }
+}
+  
+  //Call the HttpClient() function to 
+  // send a GET request to the App Engine
+  var client = new HttpClient();
+  
+  //The URL used to get to the App Engine,
+  //with the GET request arguments (parking spot name) as the paramter
+  var url = 'https://cors.io/?https://car-management-66420.appspot.com/get_spotinfo?Parking_Lot='+lot+'&Spots='+spot;
+ 
+
+  //The following function uses the HTTP client object and URL declared above 
+  //to send the get request, Parse the returned JSON object, and
+  //populate every spot with the proper color
+  client.get(url, function(response) { 
+      // Parse the JSON  response
+     var result = JSON.parse(response)
+
+    //First extract color by checking the status
+    var color = colorForStatus(result.Status);
+
+    //by default make the text color white
+    var wordColor = "white";
+    //If the backgroudn color is yellow, 
+    if(color == "yellow"){
+      wordColor = "black";
+     }
+
+    //The following 3 lines take the result and copy it to the
+    //strings: "title", "title2", and "details".
+    //These strings are printined above in the HTML code 
+    document.getElementById("title").innerHTML = '<font size="6" color="'+wordColor+'">'+lot+' '+spot+'</font>';
+    document.getElementById("title2").innerHTML ='<font size="6" color="'+wordColor+'">'+'Spot Type: '+result.Spot_Type+ '</font>';
+    document.getElementById("details").innerHTML = '<font size="4" color="'+wordColor+'">'+
+        'Current Status: '+ result.Status + '<br>BlueTooth ID: '+result.BT_String+'</font>';
+    parkingSpace.style.background= color;
+     
+     //Only display user info if the color is blue
+     //meaning the spot is in use by a user
+     if(color =="blue"){
+        document.getElementById("userInfo").innerHTML = '<font size="4" color="white">'+
+        '<br><br>User: '+result.User_ID +
+      '<br>User\'s permit: '+ result.Permit_Type+ '</font>';
+     }else{
+      //otherwise, make the user information empty
+      document.getElementById("userInfo").innerHTML = '';
+     }
+
+     parkingDetailsContent.style.background=color;
+  });
+
+  
+}
+
+//              myOnLoad()
+//
+//The following function is called when the page first loads
+// the goal is to get the live spot information
+function myOnLoad(){
+    //first off, get spot data for the spot
+    reloadAllSpots("Baskin");
+
+    //Next, set a timer to releoadLot every REFRESH_INTERVAL
+    // (5 seconds)
+    var myVar = setInterval(reloadLot, REFRESH_INTERVAL );
+
+}
+
+//         reloadLot
+//
+// This helper function calls the function that
+// reloads all spot info
+function reloadLot(){
+  reloadAllSpots("Baskin");
+}
+
+
+//             reloadAllSpots(lot)
+// 
+// @param: lot
+//
+// This function relots the lot to get updated spot 
+// data.
+function reloadAllSpots(lot){
+  var parkingSpaces=document.getElementsByClassName("parkingSpace");
+  //get_parkinglot
+  var url = 'https://cors.io/?https://car-management-66420.appspot.com/get_parkinglot?Parking_Lot='+lot;
+  console.log('requesting from: '+url);
+   var client = new HttpClient();
+  client.get(url, function(response) {
+      // do something with response
+    //about to print the response
+    // alert('Resonse is '+response);
+     var result = JSON.parse(response)
+     Array.prototype.forEach.call(parkingSpaces, function(parkingSpace){
+
+      var spaceData = result[parkingSpace.id];
+
+      var color = colorForStatus(spaceData);
+      parkingSpace.style.background= color;
+     // parkingDetailsContent.style.background=color;
+
+     });
+    
+  });
+  
+}
+
+//        var colorForStatus(status)
+//
+//  @param: status
+//  @return: color
+//
+//  The following function takes in a status
+//  and returns the proper color
+function colorForStatus(status){
+  if(status == "open"){
+      return "green";
+  }
+  if(status == "closed"){
+    return "blue";
+  }
+  if(status == "busy"){
+    return "yellow";
+  }
+  if(status == "broken"){
+    return "orange";
+  }
+  if(status == "illegal"){
+    return "red";
+  }
+  return "#F5F5EE";
+}
+
+
+//            HttpClient()
+//
+// The following function sends a GET request
+// to the App Engine to get Spot information
+// as a JSON response
+var HttpClient = function() {
+
+    //          this.get(aURL, CallBack)
+    //
+    //The following mini-function continues to call
+    // itself until the request is ready to be sent
+    // (readyState = 4 && we get status OK messege (200))
+    this.get = function(aUrl, aCallback) {
+        var anHttpRequest = new XMLHttpRequest();
+        anHttpRequest.onreadystatechange = function() { 
+            if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+                aCallback(anHttpRequest.responseText);
+        }
+
+        //Format the GET request
+        anHttpRequest.open( "GET", aUrl, true ); 
+
+        //Format header information along with the request
+        anHttpRequest.setRequestHeader("Content-type", "text/plain");    
+
+        //finally send the request with a body of null
+        anHttpRequest.send( null );
+    }
+}
+
+
+</script>
+
+<div style="margin-top: 150px" id="content_footer"></div>
+    <div style="height: 90px" id="footer">
+      <p><a href="/">Home</a> | <a href="Add">Add Users</a> | <a href="NorthRemote">North Remote Lot</a> | 
+        <a href="EastRemote">East Remote Lot</a> | <a href="Baskin">Baskin Lot</a></p>
+      <p>Copyright &copy; Senior Design Team 1 | <a href="http://www.html5webtemplates.co.uk">Website Template</a></p>
+      <p> No wrist rockets were fired during the creation of this website </p>
+    </div>
+</body>
+</html>

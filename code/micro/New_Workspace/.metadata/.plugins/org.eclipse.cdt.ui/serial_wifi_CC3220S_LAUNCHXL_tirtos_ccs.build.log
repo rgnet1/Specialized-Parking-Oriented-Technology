@@ -1,0 +1,35 @@
+
+**** Build of configuration Debug for project serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs ****
+
+"C:\\ti\\ccsv7\\utils\\bin\\gmake" -k -j 8 all -O 
+ 
+'Building file: "../uart_term.c"'
+'Invoking: ARM Compiler'
+"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=vfplib -me --include_path="C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs" --include_path="C:/ti/simplelink_cc32xx_sdk_1_60_00_04/source/ti/posix/ccs" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --define=UART_NONPOLLING -g --diag_warning=225 --diag_warning=255 --diag_wrap=off --display_error_number --gen_func_subsections=on --preproc_with_compile --preproc_dependency="uart_term.d_raw" --cmd_file="C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/tirtos_builds_CC3220S_LAUNCHXL_release_ccs/Debug/configPkg/compiler.opt" "../uart_term.c"
+'Finished building: "../uart_term.c"'
+ 
+'Building file: "../CC3220S_LAUNCHXL.c"'
+'Invoking: ARM Compiler'
+"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=vfplib -me --include_path="C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs" --include_path="C:/ti/simplelink_cc32xx_sdk_1_60_00_04/source/ti/posix/ccs" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --define=UART_NONPOLLING -g --diag_warning=225 --diag_warning=255 --diag_wrap=off --display_error_number --gen_func_subsections=on --preproc_with_compile --preproc_dependency="CC3220S_LAUNCHXL.d_raw" --cmd_file="C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/tirtos_builds_CC3220S_LAUNCHXL_release_ccs/Debug/configPkg/compiler.opt" "../CC3220S_LAUNCHXL.c"
+'Finished building: "../CC3220S_LAUNCHXL.c"'
+ 
+'Building file: "../main_tirtos.c"'
+'Invoking: ARM Compiler'
+"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=vfplib -me --include_path="C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs" --include_path="C:/ti/simplelink_cc32xx_sdk_1_60_00_04/source/ti/posix/ccs" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --define=UART_NONPOLLING -g --diag_warning=225 --diag_warning=255 --diag_wrap=off --display_error_number --gen_func_subsections=on --preproc_with_compile --preproc_dependency="main_tirtos.d_raw" --cmd_file="C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/tirtos_builds_CC3220S_LAUNCHXL_release_ccs/Debug/configPkg/compiler.opt" "../main_tirtos.c"
+'Finished building: "../main_tirtos.c"'
+ 
+'Building file: "../serial_wifi.c"'
+'Invoking: ARM Compiler'
+"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=vfplib -me --include_path="C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs" --include_path="C:/ti/simplelink_cc32xx_sdk_1_60_00_04/source/ti/posix/ccs" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --define=UART_NONPOLLING -g --diag_warning=225 --diag_warning=255 --diag_wrap=off --display_error_number --gen_func_subsections=on --preproc_with_compile --preproc_dependency="serial_wifi.d_raw" --cmd_file="C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/tirtos_builds_CC3220S_LAUNCHXL_release_ccs/Debug/configPkg/compiler.opt" "../serial_wifi.c"
+'Finished building: "../serial_wifi.c"'
+ 
+'Building target: "serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs.out"'
+'Invoking: ARM Linker'
+"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=vfplib -me --define=UART_NONPOLLING -g --diag_warning=225 --diag_warning=255 --diag_wrap=off --display_error_number --gen_func_subsections=on -z -m"serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs.map" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/lib" -i"C:/ti/simplelink_cc32xx_sdk_1_60_00_04/source/ti/net/atcmd" -i"C:/ti/simplelink_cc32xx_sdk_1_60_00_04/source/ti/net/utils" -i"C:/ti/simplelink_cc32xx_sdk_1_60_00_04/source" -i"C:/ti/simplelink_cc32xx_sdk_1_60_00_04/source/ti/drivers/net/wifi" -i"C:/ti/simplelink_cc32xx_sdk_1_60_00_04/kernel/tirtos/packages" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs_linkInfo.xml" --rom_model -o "serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs.out" "./CC3220S_LAUNCHXL.obj" "./main_tirtos.obj" "./serial_wifi.obj" "./uart_term.obj" "../CC3220S_LAUNCHXL_TIRTOS.cmd" -l"C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/tirtos_builds_CC3220S_LAUNCHXL_release_ccs/Debug/configPkg/linker.cmd" -l"ccs/Release/atcmd.a" -l"ccs/Release/net_utils.a" -l"ti/display/lib/display.aem4" -l"ti/drivers/lib/drivers_cc32xx.aem4" -l"third_party/fatfs/lib/fatfs.aem4" -l"ccs/rtos/simplelink.a" -l"ti/dpl/lib/dpl_cc32xx.aem4" -l"ti/devices/cc32xx/driverlib/ccs/Release/driverlib.a" -llibc.a 
+<Linking>
+'Finished building target: "serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs.out"'
+ 
+C:/ti/ccsv7/utils/tiobj2bin/tiobj2bin serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs.out serial_wifi_CC3220S_LAUNCHXL_tirtos_ccs.bin C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armofd C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armhex C:/ti/ccsv7/utils/tiobj2bin/mkhex4bin
+ 
+
+**** Build Finished ****

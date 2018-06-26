@@ -1,0 +1,236 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <title>Parking Management System</title>
+  <meta name="description" content="website description" />
+  <meta name="keywords" content="website keywords, website keywords" />
+  <meta http-equiv="content-type" content="text/html; charset=windows-1252" />
+  <link rel="stylesheet" type="text/css" href="style/style.css" />
+</head>
+
+<style>
+#site_content {
+	padding: 20px;
+}
+
+form.main {
+    border-radius: 35px;
+    background-color: #e2e2e2;
+	width: 500px;
+    padding: 25px;
+	position: relative;
+	left: 30px;
+}
+
+input[type=text], input[type=password] {
+	width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+input[type=submit] {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 16px 32px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+input:focus {
+	border: 2px solid #777;
+	
+}
+
+</style>
+
+<body>
+  <div id="main">
+    <div id="header">
+      <div id="logo">
+        <div id="logo_text">
+          <!-- class="logo_colour", allows you to change the colour of the text -->
+          <h1><a href="/">Parking Management <span class="logo_colour">UC Santa Cruz</span></a></h1>
+          <h2>Administrator Website.</h2>
+        </div>
+      </div>
+      <div id="menubar">
+        <ul id="menu">
+          <!-- put class="selected" in the li tag for the selected page - to highlight which page you're on -->
+          <li><a href="/">Home</a></li>
+          <li class="selected"><a href="Users">User Accounts</a></li>
+		  <li><a href="Logs">Logs</a></li>
+          <li><a href="NorthRemote">North Remote Lot</a></li>
+          <li><a href="EastRemote">East Remote Lot</a></li>
+          <li><a href="Baskin">Baskin Lot</a></li>
+        </ul>
+      </div>
+    </div>
+    <div id="content_header"></div>
+	<div style="width: 100%; display: hidden;">
+	  <div style="display: table-row">
+        <div id="site_content" style="display: table-cell; width: 50%">
+		  <input type="button" value="Search Users" onclick="showSearch();">
+		  <input type="button" value="Add Users" onclick="showAdd();">
+	      <div id="search">
+			<h2>Search for User Accounts</h2>
+	  
+			<form class="main" action="https://car-management-66420.appspot.com/Users" method="post">
+			<!--<form class="main" action="http://localhost:8080/Users" method="post">-->
+			First name:<br>
+			<input type="text" name="First_Name">
+			<br>
+			Last name:<br>
+			<input type="text" name="Last_Name">
+			<br>
+			ID:<br>
+			<input type="text" name="id">
+			<br>
+			Permit Type:<br>
+			<input type="text" name="Permit_Type">
+			<br>
+			E-Mail:<br>
+			<input type="text" name="E_mail">
+			<br>
+			License Plate:<br>
+			<input type="text" name="License_Plate">
+			<br><br>
+			<input type="submit" value="Submit">
+			</form>
+			</div>
+		  <div id="add" style="display:none">
+			<h2>Add User Account</h2>
+	  
+			<form class="main" action="https://car-management-66420.appspot.com/Add" method="post">
+			<!--<form class="main" action="http://localhost:8080/Add" method="post">-->
+			First name:<br>
+			<input type="text" name="First_Name">
+			<br>
+			Last name:<br>
+			<input type="text" name="Last_Name">
+			<br>
+			ID:<br>
+			<input type="text" name="id">
+			<br>
+			Permit Type:<br>
+			<input type="text" name="Permit_Type">
+			<br>
+			E-Mail:<br>
+			<input type="text" name="email">
+			<br>
+			Account Balance:<br>
+			<input type="text" name="account_balance">
+			<br>
+			Password:<br>
+			<input type="password" name="password">
+			<br>
+			License Plate:<br>
+			<input type="text" name="License_Plate">
+			<br><br>
+			<input type="submit" value="Submit">
+			</form>
+		  </div>
+		</div>
+		{% if account_list %}
+		<div style="display: table-cell; width: 50%;">
+		  <table>
+		    <tr>
+			<th>Last</th>
+			<th>First</th>
+			<th>ID</th>
+			<th>Permit</th>
+			<th>Email</th>
+			<th>Account Balance</th>
+			<th>Logged In</th>
+			<th>License Plate</th>
+			</tr>
+			{% for account in account_list %}
+			<tr>
+			<td>{{ account.last }}</td>
+			<td>{{ account.first }}</td>
+			<td>{{ account.userid }}</td>
+			<td>{{ account.permit }}</td>
+			<td>{{ account.email }}</td>
+			<td>{{ account.acc_balance }}</td>
+			<td>{{ account.log_status }}</td>
+			<td>{{ account.lic_plate }}</td>
+			<td><a href="https://car-management-66420.appspot.com/Edit?last={{ account.last }}&
+			first={{ account.first }}&userid={{ account.userid }}&permit={{ account.permit }}&
+			email={{ account.email }}&acc_balance={{ account.acc_balance }}&
+			lic_plate={{ account.lic_plate }}">Edit</a></td>
+			<td onclick="Delete({{ account.userid }});">
+			  <a href="https://car-management-66420.appspot.com/Users">Delete</a>
+			<!--<form method="post" action="http://localhost:8080/Users" target="_self" class="inline">
+			<input type="hidden" name="extra_submit_param" value="extra_submit_value">
+			<button type="submit" name="submit_param" value="submit_value" class="link-button">
+			Delete
+			</button>
+			</form>-->
+			</td>
+		</tr>
+		{% endfor %}
+		</table>
+		</div>
+		{% endif %}
+      </div>
+	</div>
+    <div style="margin-top: 150px" id="content_footer"></div>
+    <div style="height: 90px" id="footer">
+      <p><a href="/">Home</a> | <a href="Add">Add Users</a> | <a href="NorthRemote">North Remote Lot</a> | 
+        <a href="EastRemote">East Remote Lot</a> | <a href="Baskin">Baskin Lot</a></p>
+      <p>Copyright &copy; Senior Design Team 1 | <a href="http://www.html5webtemplates.co.uk">Website Template</a></p>
+      <p> No wrist rockets were fired during the creation of this website </p>
+    </div>
+  </div>
+  <script>
+    function Delete(id){
+		var client = new HttpClient(id);
+		<!--var url = 'https://cors.io/?https://car-management-66420.appspot.com/Delete'-->
+		var url = 'https://car-management-66420.appspot.com/Delete'
+		
+		client.get(url, function(response) {
+			var result = JSON.parse(response);
+			var status = result.status;
+			window.location.href = "https://car-management-66420.appspot.com/Users";
+		})
+	}
+    var HttpClient = function(id) {
+
+    //          this.get(aURL, CallBack)
+    //
+    //The following mini-function continues to call
+    // itself until the request is ready to be sent
+    // (readyState = 4 && we get status OK messege (200))
+    this.get = function(aUrl, aCallback) {
+        var anHttpRequest = new XMLHttpRequest();
+        anHttpRequest.onreadystatechange = function() { 
+            if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+                aCallback(anHttpRequest.responseText);
+        }
+
+        //Format the GET request
+        anHttpRequest.open( "POST", aUrl, true ); 
+
+        //Format header information along with the request
+        anHttpRequest.setRequestHeader("Content-type", "text/plain");    
+
+        var myObj = {"userid":id};
+		var myJSON = JSON.stringify(myObj);
+        anHttpRequest.send(myJSON);
+		}
+	}
+	function showSearch() {
+		document.getElementById('search').style.display="block";
+		document.getElementById('add').style.display="none";
+	}
+	function showAdd() {
+		document.getElementById('search').style.display="none";
+		document.getElementById('add').style.display="block";
+	}
+  </script>
+</body>
+</html>

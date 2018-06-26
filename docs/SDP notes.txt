@@ -1,0 +1,18 @@
+ifconfig eth0 10.0.0.1/24
+Pi: wristrockets
+
+ssh pi@192.168.137.65
+
+INSERT INTO [table] ([column], [column]) VALUES ('[value]', [value]');
+
+INSERT INTO spaces (Spots, Status, BT_String,Spot_Type,Daily_Rate, Parking_Lot, Complete, Gateway)
+ VALUES ('6', 'open','111111234567','C','2.50','EastRemote','1','1');
+ 
+ 
+ 
+ UPDATE spaces SET Status = 'closed' WHERE Spots = 51;
+ UPDATE spaces SET BT_String='311111111111' WHERE Parking_Lot='NorthRemote' AND Spots='';
+ 
+ 620
+ 
+ DELETE FROM spaces WHERE Parking_Lot=NorthRemote AND Spots =4;

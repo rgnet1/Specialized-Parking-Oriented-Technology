@@ -1,0 +1,598 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <title>Parking Management - East Remote</title>
+  <meta name="description" content="website description" />
+  <meta name="keywords" content="website keywords, website keywords" />
+  <meta http-equiv="content-type" content="text/html; charset=windows-1252" />
+  <link rel="stylesheet" type="text/css" href="style/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body onload="myOnLoad()">
+  <div id="main">
+    <div id="header">
+      <div id="logo">
+        <div id="logo_text">
+          <!-- class="logo_colour", allows you to change the colour of the text -->
+          <h1><a href="/">Parking Management <span class="logo_colour">UC Santa Cruz</span></a></h1>
+          <h2>Administrator Website.</h2>
+        </div>
+      </div>
+      <div id="menubar">
+        <ul id="menu">
+          <!-- put class="selected" in the li tag for the selected page - to highlight which page you're on -->
+          <li><a href="/">Home</a></li>
+          <li><a href="Users">Search Users</a></li>
+          <li><a href="Add">Add Users</a></li>
+          <li><a href="NorthRemote">North Remote Lot</a></li>
+          <li class="selected"><a href="EastRemote">East Remote Lot</a></li>
+          <li><a href="Baskin">Baskin Lot</a></li>
+        </ul>
+      </div>
+    </div>
+    <div id="content_header"></div>
+    <!--<div id="site_content">
+      
+      <div id="content"> -->
+        <!-- insert the page content here -->
+      <div class = "myContainer" style="margin:0 auto">
+        <div style="text-align:center">
+          <h1>East Remote</h1>
+          <fieldset>
+          <legend><h1>Legend</h1></legend>
+            <div class="key green"> <p> <font size="3" > <span class="tab" >Open&nbsp;spot</span></font></p></div>
+            <div class="key blue"> <p> <font size="3" > <span class="tab" >Legal&nbsp;User&nbsp;(Spot&nbsp;in&nbsp;use)</span></font></p></div>
+            <div class="key yellow"><p> <font size="3" > <span class="tab">Busy&nbsp;(verification&nbsp;in&nbsp;progress)</span></font> </p></div>
+            <div class="key red" ><p><font size="3" > <span class="tab" >Illegal&nbsp;user</span></font></p></div>
+            <div class="key grey" ><p><font size="3" > <span class="tab" >Database&nbsp;is&nbsp;offline</span></font></p></div>
+            <div class="key orange" ><p><font size="3" > <span class="tab" >Broken&nbsp;sensor</span></font></p></div>
+          </fieldset>
+          
+        </div>
+        <center><p> <font size="4"><br>&nbsp;&nbsp;&nbsp;Click a parking spot to see details</font></p></center>
+      </div>
+          
+<div class="row">
+  <div class="parkingSpace";" style="background:#F5F5EE;">
+  </div>
+ 
+  <div id = '1' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','1');" style="background:grey;border:3px solid black;">
+    1
+  </div>
+  <div id='2' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','2');" style="background:grey;border:3px solid black;">
+    2
+  </div>
+   <div id = '3' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','3');" style="background:grey;border:3px solid black;">
+    3
+   </div>
+      <div id = '4' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','4');" style="background:grey;border:3px solid black;">
+    4
+  </div>
+   <div id = '5' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','5');" style="background:grey;border:3px solid black;">
+    5
+  </div>
+  <div id = '6' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','6');" style="background:grey;border:3px solid black;">
+    6
+  </div>
+  <div id = '7' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','7');" style="background:grey;border:3px solid black;">
+    7
+  </div>
+  <div id = '8' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','8');" style="background:grey;border:3px solid black;">
+    8
+  </div>
+  <div id = '9' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','9');" style="background:grey;border:3px solid black;">
+    9
+  </div>
+  <div id = '10' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','10');" style="background:grey;border:3px solid black;">
+    10
+  </div>
+<div class="parkingSpace";" style="background:#F5F5EE;">
+  </div>
+ </div>
+
+
+<div class="row">
+  <div id='11' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','11');" style="background:grey;border:3px solid black;">
+    11
+  </div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div id='24' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','24');" style="background:grey;border:3px solid black;">
+    24
+  </div>
+</div>
+
+
+
+<div class="row">
+  <div id='12' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','12');" style="background:grey;border:3px solid black;">
+    12
+  </div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div id='25' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','25');" style="background:grey;border:3px solid black;">
+    25
+  </div>
+</div>
+
+
+
+<div class="row">
+  </div>
+  <div id = '13' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','13');" style="background:grey;border:3px solid black;">
+    13
+  </div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div id='40' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','40');" style="background:grey;border:3px solid black;">
+    40
+  </div>
+  <div id='41' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','41');" style="background:grey;border:3px solid black;">
+    41
+  </div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+  <div class="parkingSpace";" style="background:#F5F5EE;">
+  </div><div class="parkingSpace";" style="background:#F5F5EE;"></div>
+   <div id='26' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','26');" style="background:grey;border:3px solid black;">
+    26
+  </div>
+
+
+
+  <div class="row">
+   </div>
+    <div id = '14' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','14');" style="background:grey;border:3px solid black;">
+      14
+   </div>
+   <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+   <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+   <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+   <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+   <div id='42' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','42');" style="background:grey;border:3px solid black;">
+      42
+   </div>
+    <div id='43' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','43');" style="background:grey;border:3px solid black;">
+      43
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='27' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','27');" style="background:grey;border:3px solid black;">
+      27
+    </div>
+
+  <div class="row">
+    </div>
+    <div id = '15' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','15');" style="background:grey;border:3px solid black;">
+      15
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='44' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','44');" style="background:grey;border:3px solid black;">
+      44
+    </div>
+    <div id='43' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','45');" style="background:grey;border:3px solid black;">
+      45
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='28' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','28');" style="background:grey;border:3px solid black;">
+      28
+    </div>
+  <div class="row">
+    </div>
+    <div id = '16' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','16');" style="background:grey;border:3px solid black;">
+      16
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='46' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','46');" style="background:grey;border:3px solid black;">
+      46
+    </div>
+    <div id='47' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','47');" style="background:grey;border:3px solid black;">
+      47
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='29' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','29');" style="background:grey;border:3px solid black;">
+      29
+    </div>
+  <div class="row">
+    </div>
+    <div id = '17' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','17');" style="background:grey;border:3px solid black;">
+      17
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='48' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','48');" style="background:grey;border:3px solid black;">
+      48
+    </div>
+    <div id='49' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','49');" style="background:grey;border:3px solid black;">
+      49
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='30' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','30');" style="background:grey;border:3px solid black;">
+      30
+    </div>
+  <div class="row">
+    </div>
+    <div id = '18' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','18');" style="background:grey;border:3px solid black;">
+      18
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='50' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','50');" style="background:grey;border:3px solid black;">
+      50
+    </div>
+    <div id='51' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','51');" style="background:grey;border:3px solid black;">
+      51
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='31' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','31');" style="background:grey;border:3px solid black;">
+      31
+    </div>
+  <div class="row">
+    </div>
+      <div id = '19' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','19');" style="background:grey;border:3px solid black;">
+        19
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='32' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','32');" style="background:grey;border:3px solid black;">
+      32
+    </div>
+  <div class="row">
+    </div>
+      <div id = '20' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','20');" style="background:grey;border:3px solid black;">
+        20
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='33' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','33');" style="background:grey;border:3px solid black;">
+      33
+    </div>
+  <div class="row">
+    </div>
+      <div id = '21' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','21');" style="background:grey;border:3px solid black;">
+        21
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='34' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','34');" style="background:grey;border:3px solid black;">
+      34
+    </div>
+  <div class="row">
+    </div>
+      <div id = '22' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','22');" style="background:grey;border:3px solid black;">
+        22
+    </div>
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='39' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','39');" style="background:grey;border:3px solid black;">
+      39
+    </div>
+    <div id='38' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','38');" style="background:grey;border:3px solid black;">
+      38
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='35' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','35');" style="background:grey;border:3px solid black;">
+      35
+    </div>
+
+  <div class="row">
+    </div>
+      <div id = '23' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','23');" style="background:grey;border:3px solid black;">
+        23
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div id='37' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','37');" style="background:grey;border:3px solid black;">
+      37
+    </div>
+    <div id='36' class="parkingSpace" onclick="parkingDetailsConfigure(this,'EastRemote','36');" style="background:grey;border:3px solid black;">
+      36
+    </div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+    <div class="parkingSpace";" style="background:#F5F5EE;"></div>
+</div>
+</div>
+
+<!-- Print Parking Details Pop Up of a spot (hidden by default) -->
+<div id="parkingDetails" class="parkingDetails">
+
+<div id="parkingDetailsContent" class = "parkingDetails-content">
+   
+ <!-- Pop Up format -->  
+  <span class="close">&times;</span>
+  <div id="textbox">
+  <h2 id="title" class="alignleft"></h2>
+  <h2 id="title2" color ="white" class="alignright"></h2>
+  </div>
+  <div style="clear: both;"></div>
+    <!-- <span onclick="this.parentElement.style.display='none'" class="closebtn">&times;</span> -->
+  <p color="white" id="details"></p>
+  <p color="white" id="userInfo"></p>
+  </div>
+  </div>
+
+
+
+
+
+<!-- The following code is Java Script  logic for getting information
+      to display on the website 
+-->
+<script>
+//Refresh interval gets a new upate every 500 ms (5 seconds)
+var REFRESH_INTERVAL = 5000;
+
+function parkingDetailsConfigure(parkingSpace, lot, spot) {
+  var parkingDetails = document.getElementById("parkingDetails");
+  var parkingDetailsContent = document.getElementById("parkingDetailsContent");
+  
+  // Get the <span> element that closes the pop up
+  var span = document.getElementsByClassName("close")[0];
+  parkingDetails.style.display = "block";
+
+  // When the user clicks on <span> (x), close the pop up
+  span.onclick = function() {
+    parkingDetails.style.display = "none";
+  }
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == parkingDetails) {
+        parkingDetails.style.display = "none";
+    }
+}
+  
+  //Call the HttpClient() function to 
+  // send a GET request to the App Engine
+  var client = new HttpClient();
+  
+  //The URL used to get to the App Engine,
+  //with the GET request arguments (parking spot name) as the paramter
+  var url = 'https://cors.io/?https://car-management-66420.appspot.com/get_spotinfo?Parking_Lot='+lot+'&Spots='+spot;
+ 
+
+  //The following function uses the HTTP client object and URL declared above 
+  //to send the get request, Parse the returned JSON object, and
+  //populate every spot with the proper color
+  client.get(url, function(response) { 
+      // Parse the JSON  response
+     var result = JSON.parse(response)
+
+    //First extract color by checking the status
+    var color = colorForStatus(result.Status);
+
+    //by default make the text color white
+    var wordColor = "white";
+    //If the backgroudn color is yellow, 
+    if(color == "yellow"){
+      wordColor = "black";
+     }
+
+    //The following 3 lines take the result and copy it to the
+    //strings: "title", "title2", and "details".
+    //These strings are printined above in the HTML code 
+    document.getElementById("title").innerHTML = '<font size="6" color="'+wordColor+'">'+lot+' '+spot+ '</font>';
+    document.getElementById("title2").innerHTML ='<font size="6" color="'+wordColor+'">'+'Spot Type: '+result.Spot_Type+ '</font>';
+    document.getElementById("details").innerHTML = '<font size="4" color="'+wordColor+'">'+
+        'Current Status: '+ result.Status+ '<br>BlueTooth ID: '+result.BT_String+'</font>';
+     parkingSpace.style.background= color;
+     
+     //Only display user info if the color is blue
+     //meaning the spot is in use by a user
+     if(color =="blue"){
+        document.getElementById("userInfo").innerHTML = '<font size="4" color="white">'+
+        '<br><br>User: '+result.User_ID +
+      '<br>User\'s permit: '+ result.Permit_Type+ '</font>';
+     }else{
+      //otherwise, make the user information empty
+      document.getElementById("userInfo").innerHTML = '';
+     }
+
+     parkingDetailsContent.style.background=color;
+  });
+
+  
+}
+
+//              myOnLoad()
+//
+//The following function is called when the page first loads
+// the goal is to get the live spot information
+function myOnLoad(){
+    //first off, get spot data for the spot
+    reloadAllSpots("EastRemote");
+
+    //Next, set a timer to releoadLot every REFRESH_INTERVAL
+    // (5 seconds)
+    var myVar = setInterval(reloadLot, REFRESH_INTERVAL );
+
+}
+
+//         reloadLot
+//
+// This helper function calls the function that
+// reloads all spot info
+function reloadLot(){
+  reloadAllSpots("EastRemote");
+}
+
+
+//             reloadAllSpots(lot)
+// 
+// @param: lot
+//
+// This function relots the lot to get updated spot 
+// data.
+function reloadAllSpots(lot){
+  var parkingSpaces=document.getElementsByClassName("parkingSpace");
+  //get_parkinglot
+  var url = 'https://cors.io/?https://car-management-66420.appspot.com/get_parkinglot?Parking_Lot='+lot;
+  console.log('requesting from: '+url);
+   var client = new HttpClient();
+  client.get(url, function(response) {
+      // do something with response
+    //about to print the response
+    // alert('Resonse is '+response);
+     var result = JSON.parse(response)
+     Array.prototype.forEach.call(parkingSpaces, function(parkingSpace){
+
+      var spaceData = result[parkingSpace.id];
+
+      var color = colorForStatus(spaceData);
+      parkingSpace.style.background= color;
+     // parkingDetailsContent.style.background=color;
+
+     });
+    
+  });
+  
+}
+
+//        var colorForStatus(status)
+//
+//  @param: status
+//  @return: color
+//
+//  The following function takes in a status
+//  and returns the proper color
+function colorForStatus(status){
+  if(status == "open"){
+      return "green";
+  }
+  if(status == "closed"){
+    return "blue";
+  }
+  if(status == "busy"){
+    return "yellow";
+  }
+  if(status == "illegal"){
+    return "red";
+  }
+  if(status == "broken"){
+    return "orange";
+  }
+  return "#F5F5EE";
+}
+
+
+//            HttpClient()
+//
+// The following function sends a GET request
+// to the App Engine to get Spot information
+// as a JSON response
+var HttpClient = function() {
+
+    //          this.get(aURL, CallBack)
+    //
+    //The following mini-function continues to call
+    // itself until the request is ready to be sent
+    // (readyState = 4 && we get status OK messege (200))
+    this.get = function(aUrl, aCallback) {
+        var anHttpRequest = new XMLHttpRequest();
+        anHttpRequest.onreadystatechange = function() { 
+            if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+                aCallback(anHttpRequest.responseText);
+        }
+
+        //Format the GET request
+        anHttpRequest.open( "GET", aUrl, true ); 
+
+        //Format header information along with the request
+        anHttpRequest.setRequestHeader("Content-type", "text/plain");    
+
+        //finally send the request with a body of null
+        anHttpRequest.send( null );
+    }
+}
+
+
+</script>
+
+<div style="margin-top: 150px" id="content_footer"></div>
+    <div style="height: 90px" id="footer">
+      <p><a href="/">Home</a> | <a href="Add">Add Users</a> | <a href="NorthRemote">North Remote Lot</a> | 
+        <a href="EastRemote">East Remote Lot</a> | <a href="Baskin">Baskin Lot</a></p>
+      <p>Copyright &copy; Senior Design Team 1 | <a href="http://www.html5webtemplates.co.uk">Website Template</a></p>
+      <p> No wrist rockets were fired during the creation of this website </p>
+    </div>
+</body>
+</html>

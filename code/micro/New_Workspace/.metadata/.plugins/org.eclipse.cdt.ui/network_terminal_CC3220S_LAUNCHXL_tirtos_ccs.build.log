@@ -1,0 +1,20 @@
+
+**** Build of configuration Debug for project network_terminal_CC3220S_LAUNCHXL_tirtos_ccs ****
+
+"C:\\ti\\ccsv7\\utils\\bin\\gmake" -k -j 8 all -O 
+ 
+'Building file: "../socket_cmd.c"'
+'Invoking: ARM Compiler'
+"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=vfplib -me --include_path="C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/network_terminal_CC3220S_LAUNCHXL_tirtos_ccs" --include_path="C:/ti/simplelink_cc32xx_sdk_1_60_00_04/source/ti/posix/ccs" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --define=CC32XX -g --diag_warning=225 --diag_warning=255 --diag_wrap=off --display_error_number --gen_func_subsections=on --preproc_with_compile --preproc_dependency="socket_cmd.d_raw" --cmd_file="C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/tirtos_builds_CC3220S_LAUNCHXL_release_ccs/Debug/configPkg/compiler.opt" "../socket_cmd.c"
+'Finished building: "../socket_cmd.c"'
+ 
+'Building target: "network_terminal_CC3220S_LAUNCHXL_tirtos_ccs.out"'
+'Invoking: ARM Linker'
+"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=vfplib -me --define=CC32XX -g --diag_warning=225 --diag_warning=255 --diag_wrap=off --display_error_number --gen_func_subsections=on -z -m"network_terminal_CC3220S_LAUNCHXL_tirtos_ccs.map" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/lib" -i"C:/ti/simplelink_cc32xx_sdk_1_60_00_04/source" -i"C:/ti/simplelink_cc32xx_sdk_1_60_00_04/source/ti/drivers/net/wifi" -i"C:/ti/simplelink_cc32xx_sdk_1_60_00_04/kernel/tirtos/packages" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="network_terminal_CC3220S_LAUNCHXL_tirtos_ccs_linkInfo.xml" --rom_model -o "network_terminal_CC3220S_LAUNCHXL_tirtos_ccs.out" "./CC3220S_LAUNCHXL.obj" "./cmd_parser.obj" "./main_tirtos.obj" "./netapp_cmd.obj" "./network_terminal.obj" "./radio_tool.obj" "./socket_cmd.obj" "./str.obj" "./transceiver_cmd.obj" "./uart_term.obj" "./wlan_cmd.obj" "../CC3220S_LAUNCHXL_TIRTOS.cmd" -l"C:/Users/mothb_000/Desktop/CE 123/CCS_Workspace/New_Workspace/tirtos_builds_CC3220S_LAUNCHXL_release_ccs/Debug/configPkg/linker.cmd" -l"ti/display/lib/display.aem4" -l"ti/drivers/lib/drivers_cc32xx.aem4" -l"third_party/fatfs/lib/fatfs.aem4" -l"ccs/rtos/simplelink.a" -l"ti/dpl/lib/dpl_cc32xx.aem4" -l"ti/devices/cc32xx/driverlib/ccs/Release/driverlib.a" -llibc.a 
+<Linking>
+'Finished building target: "network_terminal_CC3220S_LAUNCHXL_tirtos_ccs.out"'
+ 
+C:/ti/ccsv7/utils/tiobj2bin/tiobj2bin network_terminal_CC3220S_LAUNCHXL_tirtos_ccs.out network_terminal_CC3220S_LAUNCHXL_tirtos_ccs.bin C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armofd C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.6.LTS/bin/armhex C:/ti/ccsv7/utils/tiobj2bin/mkhex4bin
+ 
+
+**** Build Finished ****

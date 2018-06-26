@@ -1,0 +1,85 @@
+//triggers when space becomes occupied
+1.check if bt signal is available/ 
+
+1.5 //execute transaction to update space so that occupancy = true
+
+ INSERT INTO occupationhistory (parking spot id, status, time stamp)
+ VALUES (‘my spot id’, ‘my status’, now());
+
+ UPDATE spaces
+ SET status=(my new status)
+ WHERE parkingspotid=‘my parking spotted’ AND WHERE lot = 'east remote';
+
+2.//sql query to check user id for bluetooth id
+ SELECT people.userid
+ FROM people 
+ WHERE btstring = ‘my BTstring from python’
+
+//check rate for current space to provide to user
+ SELECT spaces.rate 
+ FROM spaces
+ WHERE spaces.spotid=[your now-occupied spot id]
+
+3.//check if funds are sufficient for current user (return fund available)
+ SELECT people.balance
+ FROM people
+ WHERE userid=[my user id]
+
+4.//if yes then provide user option to execute purchase transaction continue to 5; if no provide user option to execute account recharge transaction
+(python)
+
+5.//user purchases permit
+INSERT INTO transactions (User ID, txdate, payment amount, transaction type,parking space id)
+VALUES (‘my user id in python’, ‘my txdate-time stamp’, ‘my payment amount’, ‘my transaction type’, ‘my parking space id’)
+
+UPDATE people
+SET balance = balance-[my transaction amount]
+WHERE userid=(my user id)
+
+
+//-------------------------------------------------------------------------------------
+
+#!/usr/bin/python
+import MySQLdb
+
+db = MySQLdb.connect(host="localhost",    # your host, usually localhost
+                     user="john",         # your username
+                     passwd="megajonhy",  # your password
+                     db="jonhydb")        # name of the data base
+
+# you must create a Cursor object. It will let
+#  you execute all the queries you need
+cur = db.cursor()
+
+# Use all the SQL you like
+cur.execute("SELECT * FROM YOUR_TABLE_NAME")
+
+# print all the first cell of all the rows
+for row in cur.fetchall():
+    print row[0]
+
+db.close()
+
+
+
+
+
+//---------------------------------------------------
+
+INSERT INTO Results
+    (
+     People,
+     names,
+    )
+    VALUES
+    (
+     (
+       SELECT d.id
+       FROM Names f
+       JOIN People d ON d.id  = f.id
+     ),
+
+     (
+      "Henry"
+     ),
+    );

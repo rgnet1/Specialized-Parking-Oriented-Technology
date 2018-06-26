@@ -1,0 +1,203 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <title>Parking Management System</title>
+  <meta name="description" content="website description" />
+  <meta name="keywords" content="website keywords, website keywords" />
+  <meta http-equiv="content-type" content="text/html; charset=windows-1252" />
+  <link rel="stylesheet" type="text/css" href="style/style.css" />
+</head>
+
+<style>
+#site_content {
+	padding: 20px;
+}
+
+form.main {
+    border-radius: 35px;
+    background-color: #e2e2e2;
+	width: 500px;
+    padding: 25px;
+	position: relative;
+	left: 30px;
+}
+
+input[type=text], input[type=password] {
+	width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+input[type=submit] {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 16px 32px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+input:focus {
+	border: 2px solid #777;
+	
+}
+
+</style>
+
+<script>
+function PromptAdd() {
+	alert("Added user to database");
+}
+</script>
+
+<body>
+  <div id="main">
+    <div id="header">
+      <div id="logo">
+        <div id="logo_text">
+          <!-- class="logo_colour", allows you to change the colour of the text -->
+          <h1><a href="/">Parking Management <span class="logo_colour">UC Santa Cruz</span></a></h1>
+          <h2>Administrator Website.</h2>
+        </div>
+      </div>
+      <div id="menubar">
+        <ul id="menu">
+          <!-- put class="selected" in the li tag for the selected page - to highlight which page you're on -->
+          <li><a href="/">Home</a></li>
+          <li><a href="Users">User Accounts</a></li>
+		  <li class="selected"><a href="Logs">Logs</a></li>
+          <li><a href="NorthRemote">North Remote Lot</a></li>
+          <li><a href="EastRemote">East Remote Lot</a></li>
+          <li><a href="Baskin">Baskin Lot</a></li>
+        </ul>
+      </div>
+    </div>
+    <div id="content_header"></div>
+	<div style="width: 100%; display: hidden;">
+	  <div style="display: table-row">
+		<div id="site_content" style="display: table-cell; width: 50%">
+		<input type="button" value="Search Transactions" onclick="showTransaction();">
+		<input type="button" value="Search Occupations" onclick="showOccupation();">
+		<div id="transaction">
+	      <h2>Search for Transaction History</h2>
+	  
+		  <form class="main" action="https://car-management-66420.appspot.com/Logs" method="post">
+		  <!--<form class="main" action="http://localhost:8080/Logs" method="post">-->
+		  Date (e.g., May 1):<br>
+		  <input type="text" name="date">
+		  <br>
+		  Parking Lot:<br>
+		  <input type="text" name="parking_lot">
+		  <br>
+		  Spot:<br>
+		  <input type="text" name="spot">
+		  <br>
+		  User ID:<br>
+		  <input type="text" name="userid">
+		  <br>
+		  Payment Type:<br>
+		  <input type="text" name="payment_type">
+		 <br><br>
+		 <input type="submit" value="Submit">
+		 </form>
+        </div>
+		<div id="occupation" style="display:none">
+		  <h2> Search for Occupation History</h2>
+	  
+		  <form class="main" action="https://car-management-66420.appspot.com/Occupation" method="post">
+		  <!--<form class="main" action="http://localhost:8080/Occupation" method="post">-->
+		  Date:<br>
+		  <input type="text" name="date">
+		  <br>
+		  Parking Lot:<br>
+		  <input type="text" name="id">
+		  <br>
+		  Spot:<br>
+		  <input type="text" name="spot">
+		  <br>
+		  Status:<br>
+		  <input type="text" name="status">
+		  <br>
+		  User ID:<br>
+		  <input type="text" name="userid">
+		 <br><br>
+		 <input type="submit" value="Submit">
+		 </form>
+		  
+		</div>
+	</div>
+	  {% if transaction_list %}
+	  <div style="display: table-cell; width: 50%;">
+		 <table>
+		    <tr>
+			<th>Time Stamp</th>
+			<th>Parking Lot</th>
+			<th>Spot</th>
+			<th>User ID</th>
+			<th>Transaction Type</th>
+			<th>Payment Amount</th>
+			</tr>
+			{% for transaction in transaction_list %}
+			<tr>
+			<td>{{ transaction.timestamp }}</td>
+			<td>{{ transaction.parkinglot }}</td>
+			<td>{{ transaction.spot }}</td>
+			<td>{{ transaction.userid }}</td>
+			<td>{{ transaction.transactiontype }}</td>
+			<td>{{ transaction.paymentamount }}</td>
+			</td>
+		</tr>
+			{% endfor %}
+		</table>
+	  </div>
+	  {% endif %}
+	  
+	  {% if occupation_list %}
+	  <div style="display: table-cell; width: 50%;">
+		 <table>
+		    <tr>
+			<th>Time Stamp</th>
+			<th>Parking Lot</th>
+			<th>Spot</th>
+			<th>User ID</th>
+			<th>Status</th>
+			</tr>
+			{% for occupation in occupation_list %}
+			<tr>
+			<td>{{ occupation.timestamp }}</td>
+			<td>{{ occupation.parkinglot }}</td>
+			<td>{{ occupation.spot }}</td>
+			<td>{{ occupation.id }}</td>
+			<td>{{ occupation.status }}</td>
+			</td>
+		</tr>
+			{% endfor %}
+		</table>
+	  </div>
+	  {% endif %}
+	</div>
+	</div>
+    <div style="margin-top: 150px" id="content_footer"></div>
+    <div style="height: 90px" id="footer">
+      <p><a href="/">Home</a> | <a href="Add">Add Users</a> | <a href="NorthRemote">North Remote Lot</a> | 
+        <a href="EastRemote">East Remote Lot</a> | <a href="Baskin">Baskin Lot</a></p>
+      <p>Copyright &copy; Senior Design Team 1 | <a href="http://www.html5webtemplates.co.uk">Website Template</a></p>
+      <p> No wrist rockets were fired during the creation of this website </p>
+    </div>
+  </div>
+  <script>
+  	function showTransaction() {
+		document.getElementById('transaction').style.display="block";
+		document.getElementById('occupation').style.display="none";
+	}
+	function showOccupation() {
+		document.getElementById('transaction').style.display="none";
+		document.getElementById('occupation').style.display="block";
+	}
+  </script>
+</body>
+</html>

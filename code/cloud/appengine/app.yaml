@@ -1,0 +1,45 @@
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /static/favicon\.ico
+  static_files: /static/favicon.ico
+  upload: /static/favicon\.ico
+
+- url: /js
+  static_dir: /js
+
+- url: /img
+  static_dir: /img
+
+- url: /css
+  static_dir: /css
+  
+- url: /style
+  static_dir: style
+
+- url: /.*
+  script: main.application
+
+libraries:
+- name: MySQLdb
+  version: "latest"
+- name: webapp2
+  version: latest
+- name: jinja2
+  version: latest
+  
+env_variables:
+    CLOUDSQL_CONNECTION_NAME: 35.193.118.58
+    CLOUDSQL_USER: root
+    CLOUDSQL_PASSWORD: sdp2018
+    CLOUDSQL_DATABASE: parking_project
+
+#env_variables:
+#    CLOUDSQL_CONNECTION_NAME: 104.155.188.149
+#    CLOUDSQL_USER: root
+#    CLOUDSQL_PASSWORD: test
+    
+# car-management-66420:us-central1:parking-project
+# 35.193.118.58

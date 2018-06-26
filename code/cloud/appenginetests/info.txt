@@ -1,0 +1,4 @@
+EastRemote:1 open
+EastRemote:2 open
+EastRemote:3 open
+EastRemote:4 open

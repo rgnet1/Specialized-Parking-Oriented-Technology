@@ -1,0 +1,26 @@
+2/9/2018
+- App Engine interactions
+    - Gateway
+    - Database
+    - App
+- test HTTP requests and sending/receiving data
+- write protocols for these connections
+- work on Python protocols, gateway first
+
+_____________________________________________________________________
+2/6/2018
+- documentation for App Engine and specifications
+- connectivity between app engine and admin website needed?
+_____________________________________________________________________
+2/4/2018
+Starting local development server:
+- install Google Cloud SDK
+- install app-egine-python
+- navigate to directory containing desired app.yaml file
+- run "dev_appserver.py ./"
+
+- define GET method to service admin website
+- define POST method and basic client to send string to server
+- connect to database, request and load information
+- work on cloud specifications
+_____________________________________________________________________

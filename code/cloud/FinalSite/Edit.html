@@ -1,0 +1,111 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <title>Parking Management System</title>
+  <meta name="description" content="website description" />
+  <meta name="keywords" content="website keywords, website keywords" />
+  <meta http-equiv="content-type" content="text/html; charset=windows-1252" />
+  <link rel="stylesheet" type="text/css" href="style/style.css" />
+</head>
+
+<style>
+#site_content {
+	padding: 20px;
+}
+
+form {
+    border-radius: 35px;
+    background-color: #e2e2e2;
+	width: 50%;
+    padding: 25px;
+	position: relative;
+	left: 30px;
+}
+
+input[type=text] {
+	width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+input[type=submit] {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 16px 32px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+input:focus {
+	border: 2px solid #777;
+	
+}
+
+</style>
+
+<body>
+  <div id="main">
+    <div id="header">
+      <div id="logo">
+        <div id="logo_text">
+          <!-- class="logo_colour", allows you to change the colour of the text -->
+          <h1><a href="/">Parking Management <span class="logo_colour">UC Santa Cruz</span></a></h1>
+          <h2>Administrator Website.</h2>
+        </div>
+      </div>
+      <div id="menubar">
+        <ul id="menu">
+          <!-- put class="selected" in the li tag for the selected page - to highlight which page you're on -->
+          <li><a href="/">Home</a></li>
+          <li class="selected"><a href="Users">Search Users</a></li>
+		  <li><a href="Add">Add Users</a></li>
+          <li><a href="NorthRemote">North Remote Lot</a></li>
+          <li><a href="EastRemote">East Remote Lot</a></li>
+          <li><a href="Baskin">Baskin Lot</a></li>
+        </ul>
+      </div>
+    </div>
+    <div id="content_header"></div>
+    <div id="site_content">
+	  <h2>Edit User Account</h2>
+	  
+	  <form class="" action="https://car-management-66420.appspot.com/Edit" method="post">
+	  <!--<form class="" action="http://localhost:8080/Edit" method="post">-->
+	  First name:<br>
+	  <input type="text" name="First_Name" value="{{ account.first }}">
+	  <br>
+	  Last name:<br>
+	  <input type="text" name="Last_Name" value="{{ account.last }}">
+	  <br>
+	  ID:<br>
+	  <input type="text" name="id" value="{{ account.userid }}">
+	  <br>
+	  Permit Type:<br>
+	  <input type="text" name="Permit_Type" value="{{ account.permit }}">
+	  <br>
+	  E-Mail:<br>
+	  <input type="text" name="email" value="{{ account.email }}">
+	  <br>
+	  Account Balance:<br>
+	  <input type="text" name="account_balance" value="{{ account.acc_balance }}">
+	  <br>
+	  License Plate:<br>
+	  <input type="text" name="License_Plate" value="{{ account.lic_plate }}">
+	  <br><br>
+	  <input type="submit" value="Submit">
+	  </form>
+	  
+      </div>
+    <div id="content_footer"></div>
+    <div id="footer">
+      <p><a href="/">Home</a> | <a href="examples.html">Examples</a> | <a href="page.html">A Page</a> | <a href="another_page.html">Another Page</a> | <a href="contact.html">Contact Us</a></p>
+      <p>Copyright &copy; simplestyle_4 | <a href="http://validator.w3.org/check?uri=referer">HTML5</a> | <a href="http://jigsaw.w3.org/css-validator/check/referer">CSS</a> | <a href="http://www.html5webtemplates.co.uk">design from HTML5webtemplates.co.uk</a></p>
+    </div>
+  </div>
+</body>
+</html>

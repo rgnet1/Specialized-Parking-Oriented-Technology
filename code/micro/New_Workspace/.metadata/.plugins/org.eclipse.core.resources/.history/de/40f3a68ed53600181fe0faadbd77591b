@@ -1,0 +1,1816 @@
+/*
+ * Copyright (c) 2015-2017, Texas Instruments Incorporated
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * *  Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * *  Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * *  Neither the name of Texas Instruments Incorporated nor the names of
+ *    its contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ *  ======== empty.c ========
+ */
+
+/* For usleep() */
+#include <unistd.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdlib.h>
+
+
+/* Driver Header files */
+#include <ti/drivers/GPIO.h>
+// #include <ti/drivers/I2C.h>
+// #include <ti/drivers/SDSPI.h>
+#include <ti/drivers/SPI.h>
+#include <ti/drivers/UART.h>
+// #include <ti/drivers/Watchdog.h>
+#include <ti/drivers/Timer.h>
+#include <ti/drivers/net/wifi/simplelink.h>
+
+/* Board Header file */
+#include "Board.h"
+#include "semaphore.h"
+#include "pthread.h"
+#include "uart_term.h"
+
+/*
+ *  ======== mainThread ========
+ */
+#define SL_SOCKET_ERROR         ("Socket error, please refer \"SOCKET ERRORS CODES\" section in errors.h")
+#define WLAN_EVENT_TOUT             (6000)
+#define TCP_PROTOCOL_FLAGS      0
+#define TIMEOUT_SEM                 (-1)
+#define TASK_STACK_SIZE         (2048)
+#define SPAWN_TASK_PRIORITY     (9)
+#define MAX_BUF_SIZE            (1400)
+#define MAX_TEXT_PAD_SIZE       (256)
+#define WLAN_SCAN_COUNT         (20)
+#define MAX_SERVICE_NAME_LENGTH      (63)
+#define CHANNEL_MASK_ALL            (0x1FFF)
+#define RSSI_TH_MAX                 (-95)
+#define CMD_BUFFER_LEN          (256)
+#define DEVICE_ERROR            ("Device error, please refer \"DEVICE ERRORS CODES\" section in errors.h")
+#define NETAPP_ERROR            ("Netapp error, please refer \"NETAPP ERRORS CODES\" section in errors.h")
+#define SL_STOP_TIMEOUT         (200)
+#define SHOW_WARNING(ret, errortype)        UART_PRINT("\n\r[line:%d, error code:%d] %s\n\r", __LINE__, ret, errortype);
+#define IS_CONNECTED(status_variable)       \
+                GET_STATUS_BIT(status_variable, STATUS_BIT_CONNECTION)
+#define WLAN_ERROR              ("WLAN error, please refer \"WLAN ERRORS CODES\" section in errors.h")
+#define ASSERT_ON_ERROR(ret, errortype)\
+        {\
+            if(ret < 0)\
+            {\
+                SHOW_WARNING(ret, errortype);\
+                UART_PRINT("Assert on error error\n\r");\
+                return -1;\
+            }\
+        }
+#define IS_PING_RUNNING(status_variable)    \
+                GET_STATUS_BIT(status_variable, STATUS_BIT_PING_STARTED)
+
+
+// LAPTOP IP ADDRESS 192.168.0.131
+//#define LAPTOP_IP 1921680131
+//#define PI_IP 192.168.137.65
+#define LAPTOP_IP "192.168.137.65"
+#define PORTNUM 1111
+//#define PORTNUM 8080
+#define RGB_ON 0
+#define RGB_OFF 1
+#define THRESHOLD 5000
+//#define WIFI_SSID "TpLink"
+//#define WIFI_KEY "suckmydick8"
+//#define WIFI_SSID "Mothboy's iPhone"
+//#define WIFI_KEY "mothboy15"
+#define WIFI_SSID "PC"
+#define WIFI_KEY "12345678"
+#define BUFF_SIZE 100
+#define ParkingLot "EastRemote"
+#define ParkingSpace "12"
+#define OPEN_SPACE "open"
+#define BUSY_SPACE "busy"
+#define CLOSED_SPACE "closed"
+#define BROKEN_SPACE "broken"
+#define CHANGEDBIT_0 "0"
+#define CHANGEDBIT_1 "1"
+
+#define SET_STATUS_BIT(status_variable, bit) status_variable |= (1<<(bit))
+
+#define CLR_STATUS_BIT(status_variable, bit) status_variable &= ~(1<<(bit))
+
+#define GET_STATUS_BIT(status_variable, bit)    \
+                                (0 != (status_variable & (1<<(bit))))
+
+char cmdPromptStr[]             = "user:";
+char lineBreak[]                = "\n\r";
+
+typedef enum{
+
+    STATUS_BIT_NWP_INIT = 0,          /* This bit is set: Network Processor is powered up */
+
+    STATUS_BIT_CONNECTION,            /* This bit is set: the device is connected
+                                         to the AP or client is connected to device (AP) */
+    STATUS_BIT_IP_LEASED,             /* This bit is set: the device has leased IP to
+                                         any connected client */
+    STATUS_BIT_IP_ACQUIRED,           /* This bit is set: the device has acquired an IP */
+
+    STATUS_BIT_P2P_DEV_FOUND,         /* If this bit is set: the device (P2P mode)
+                                         found any p2p-device in scan */
+    STATUS_BIT_P2P_REQ_RECEIVED,      /* If this bit is set: the device (P2P mode)
+                                         found any p2p-negotiation request */
+    STATUS_BIT_CONNECTION_FAILED,     /* If this bit is set: the device(P2P mode)
+                                         connection to client(or reverse way) is failed */
+    STATUS_BIT_PING_STARTED,          /* This bit is set: device is undergoing ping operation */
+
+    STATUS_BIT_SCAN_RUNNING,          /* This bit is set: Scan is running is background */
+
+    STATUS_BIT_IPV6_ACQUIRED,         /* If this bit is set: the device has acquired
+                                         an IPv6 address */
+    STATUS_BIT_IPV6_GLOBAL_ACQUIRED,  /* If this bit is set: the device has acquired
+                                         an IPv6 address */
+    STATUS_BIT_IPV6_LOCAL_ACQUIRED,   /* If this bit is set: the device has acquired
+                                        an IPv6 address */
+    STATUS_BIT_AUTHENTICATION_FAILED, /* If this bit is set: Authentication with ENT AP failed. */
+
+    STATUS_BIT_RESET_REQUIRED,
+
+    STATUS_BIT_TX_STARED
+
+}e_StatusBits;
+
+typedef union{
+
+    SlSockAddrIn6_t     in6;   /* Socket info for Ipv6 */
+    SlSockAddrIn_t      in4;   /* Socket info for Ipv4 */
+}sockAddr_t;
+
+typedef union
+{
+    uint8_t                    nwData[MAX_BUF_SIZE];
+    int8_t                     textPad[MAX_TEXT_PAD_SIZE];
+    SlWlanNetworkEntry_t       netEntries[WLAN_SCAN_COUNT];
+}gDataBuffer_t;
+
+typedef struct cmdAction
+{
+    char        *cmd;
+    int32_t    (*callback)(void *);
+    int32_t    (*printusagecallback)(void *);
+}cmdAction_t;
+
+typedef struct p2p_ControlBlock_t
+{
+    uint8_t            p2pPeerDeviceName[32];
+    uint8_t            p2pDeviceName[32];
+    sem_t              DeviceFound;
+    sem_t              RcvNegReq;
+    sem_t              RcvConReq;
+    SlWlanSecParams_t P2PsecParams;
+}p2p_CB;
+
+typedef struct connectionControlBlock_t
+{
+    sem_t     connectEventSyncObj;
+    sem_t     ip4acquireEventSyncObj;
+    sem_t     ip6acquireEventSyncObj;
+    sem_t     eventCompletedSyncObj;
+    uint32_t GatewayIP;
+    uint8_t  ConnectionSSID[SL_WLAN_SSID_MAX_LENGTH +1];
+    uint8_t  ConnectionBSSID[SL_WLAN_BSSID_LENGTH];
+    uint32_t DestinationIp;
+    uint32_t IpAddr;
+    uint32_t StaIp;
+    uint32_t Ipv6Addr[4];
+}connection_CB;
+
+typedef struct parkingControlBlock_t
+{
+    /* Status Variables */
+    uint32_t        Status;             /* This bit-wise status variable shows the state of the NWP */
+    uint32_t        Role;               /* This field keeps the device's role (STA, P2P or AP) */
+    uint32_t        Exit;               /* This flag lets the application to exit */
+    uint32_t        PingAttempts;       /* Sets the number of Ping attempts to send */
+    /* Data & Network entry Union */
+    gDataBuffer_t     gDataBuffer;
+    /* P2P mode CB */
+    p2p_CB            P2P_CB;
+    /* STA/AP mode CB */
+    connection_CB    CON_CB;
+    /* Cmd Prompt buffer */
+    uint8_t         CmdBuffer[CMD_BUFFER_LEN];
+    /* WoWLAN semaphore */
+    sem_t            WowlanSleepSem;
+}parkingControlBlock;
+
+typedef struct ConnectCmd
+{
+    uint8_t                 *ssid;              /* Ap's SSID */
+    uint8_t                 *ip;                /* Static IP address (for static configuration) */
+    uint8_t                 *gw;                /* Default gateway IP address (for static configuration) */
+    uint8_t                 *dns;               /* Dns IP address (for static configuration) */
+    uint8_t                 *entUserName;       /* Enterprise user name */
+    SlDateTime_t            dateTime;           /* Device Date and Time - IMPORTANT: Date and time should match the certificate expiration date */
+    SlWlanSecParams_t       secParams;          /* Security parameters - Security Type and Password */
+    SlWlanSecParamsExt_t    secParamsEnt;       /* Enterprise parameters - Security Type and Password */
+}ConnectCmd_t;
+
+typedef union
+{
+    uint32_t    ipv4;       /* Ipv4 Address */
+    uint8_t     ipv6[16];   /* Ipv6 Address */
+}ip_t;
+
+typedef struct SendCmd
+{
+    int32_t          numberOfPackets;       /* Number of packets to send */
+    uint8_t          *ip;                   /* IP address */
+    int16_t          portNumber;            /* Server's port address*/
+    uint8_t          udpFlag;               /* Decides the type of transport protocol */
+    uint8_t          server;                /* Send as server or client flag */
+    uint8_t          nb;                    /* Blocking or non-blocking on socket */
+    uint8_t          ipv6;                  /* IPV4 or IPv6 flag. By default IPV4 enable */
+    ip_t             ipAddr;                /* IP in binary format */
+}SendCmd_t;
+
+
+/* Callback used for toggling the LED. */
+void timerCallback(Timer_Handle myHandle);
+void distCallback(Timer_Handle myHandle);
+void RGBTest(Timer_Handle myHandle);
+void inputTest(Timer_Handle myHandle);
+void BT_Test(Timer_Handle myHandle);
+void StopWatch_Test(Timer_Handle myHandle);
+void TRIG_PULSE(Timer_Handle myHandle);
+
+/* Other functions for sensor */
+void setPulse(useconds_t time);
+void DoNothing(void);
+int GetDistance(uint32_t distime);
+void exPulse(useconds_t time);
+void Wifi_Connect(void);
+void Socket_Connect(void);
+void retError(int32_t val, char* message);
+void FreeConnectCmd(ConnectCmd_t *ConnectParams);
+int32_t initAppVariables();
+void SendStatusMessage();
+void TX_Send();
+
+
+/*
+#define ParkingLot "East"
+#define ParkingSpace "12"
+#define OPEN_SPACE "open"
+#define BUSY_SPACE "busy"
+#define CLOSED_SPACE "closed"
+#define BROKEN_SPACE "broken"
+#define CHANGEDBIT_0 '0'
+#define CHANGEDBIT_1 '1'
+*/
+
+char Status_Message[BUFF_SIZE];
+char ChangedBitSt[10];
+char ParkingLotSt[10];
+char ParkingSpaceSt[10];
+char StatusSt[10];
+int ZeroHour = 0;
+uint_fast8_t Echo_Echo = 0;
+uint_fast8_t Echo_1 = 0;
+uint32_t DistTime = 0;
+uint32_t Echo_Beg = 0;
+uint32_t Echo_End = 0;
+int ans = 0;
+int BTcount = 0;
+int break_it = 0;
+int i = 0;
+int msgFlag = 0;
+int32_t sock = 0;
+uint8_t nb = 0;
+
+/* Initialize timer handlers and parameters */
+Timer_Handle sens_timer;
+Timer_Params sens_params;
+
+pthread_t           gSpawn_thread = (pthread_t)NULL;
+parkingControlBlock     parking_CB;
+
+/* Event Handler Functions */
+/*!
+    \brief          SimpleLinkWlanEventHandler
+
+    This handler gets called whenever a WLAN event is reported
+    by the host driver / NWP. Here user can implement he's own logic
+    for any of these events. This handler is used by 'network_terminal'
+    application to show case the following scenarios:
+
+    1. Handling connection / Disconnection.
+    2. Handling Addition of station / removal.
+    3. RX filter match handler.
+    4. P2P connection establishment.
+
+    \param          pWlanEvent       -   pointer to Wlan event data.
+
+    \return         void
+
+    \note           For more information, please refer to: user.h in the porting
+                    folder of the host driver and the  CC3120/CC3220 NWP programmer's
+                    guide (SWRU455) sections 4.3.4, 4.4.5 and 4.5.5.
+
+    \sa             cmdWlanConnectCallback, cmdEnableFilterCallback, cmdWlanDisconnectCallback,
+                    cmdP2PModecallback.
+
+*/
+void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
+{
+    if(!pWlanEvent)
+    {
+        return;
+    }
+
+    switch(pWlanEvent->Id)
+    {
+        case SL_WLAN_EVENT_CONNECT:
+        {
+            SET_STATUS_BIT(parking_CB.Status, STATUS_BIT_CONNECTION);
+
+            /* Copy new connection SSID and BSSID to global parameters */
+            memcpy(parking_CB.CON_CB.ConnectionSSID, pWlanEvent->Data.Connect.SsidName, pWlanEvent->Data.Connect.SsidLen);
+            memcpy(parking_CB.CON_CB.ConnectionBSSID, pWlanEvent->Data.Connect.Bssid, SL_WLAN_BSSID_LENGTH);
+
+            UART_PRINT("\n\r[WLAN EVENT] STA Connected to the AP: %s , "
+                "BSSID: %x:%x:%x:%x:%x:%x\n\r",
+                      parking_CB.CON_CB.ConnectionSSID, parking_CB.CON_CB.ConnectionBSSID[0],
+                      parking_CB.CON_CB.ConnectionBSSID[1],parking_CB.CON_CB.ConnectionBSSID[2],
+                      parking_CB.CON_CB.ConnectionBSSID[3],parking_CB.CON_CB.ConnectionBSSID[4],
+                      parking_CB.CON_CB.ConnectionBSSID[5]);
+
+            sem_post(&parking_CB.CON_CB.connectEventSyncObj);
+        }
+        break;
+
+        case SL_WLAN_EVENT_DISCONNECT:
+        {
+            SlWlanEventDisconnect_t  *pEventData = NULL;
+
+            CLR_STATUS_BIT(parking_CB.Status, STATUS_BIT_CONNECTION);
+            CLR_STATUS_BIT(parking_CB.Status, STATUS_BIT_IP_ACQUIRED);
+            CLR_STATUS_BIT(parking_CB.Status, STATUS_BIT_IPV6_ACQUIRED);
+
+            /* If ping operation is running, release it. */
+            if(IS_PING_RUNNING(parking_CB.Status))
+            {
+                sem_post(&parking_CB.CON_CB.eventCompletedSyncObj);
+                UART_PRINT("\n\rPing failed, since device is no longer connected.\n\r");
+            }
+
+            pEventData = &pWlanEvent->Data.Disconnect;
+
+            /* If the user has initiated 'Disconnect' request,
+              'reason_code' is SL_WLAN_DISCONNECT_USER_INITIATED */
+            if(SL_WLAN_DISCONNECT_USER_INITIATED == pEventData->ReasonCode)
+            {
+                UART_PRINT("\n\r[WLAN EVENT] Device disconnected from the AP: %s,\n\r"
+                "BSSID: %x:%x:%x:%x:%x:%x on application's request \n\r",
+                  parking_CB.CON_CB.ConnectionSSID, parking_CB.CON_CB.ConnectionBSSID[0],
+                  parking_CB.CON_CB.ConnectionBSSID[1],parking_CB.CON_CB.ConnectionBSSID[2],
+                  parking_CB.CON_CB.ConnectionBSSID[3],parking_CB.CON_CB.ConnectionBSSID[4],
+                  parking_CB.CON_CB.ConnectionBSSID[5]);
+            }
+            else
+            {
+                UART_PRINT("\n\r[WLAN ERROR] Device disconnected from the AP: %s,\n\r"
+                "BSSID: %x:%x:%x:%x:%x:%x\n\r",
+                  parking_CB.CON_CB.ConnectionSSID, parking_CB.CON_CB.ConnectionBSSID[0],
+                  parking_CB.CON_CB.ConnectionBSSID[1],parking_CB.CON_CB.ConnectionBSSID[2],
+                  parking_CB.CON_CB.ConnectionBSSID[3],parking_CB.CON_CB.ConnectionBSSID[4],
+                  parking_CB.CON_CB.ConnectionBSSID[5]);
+            }
+            memset(&(parking_CB.CON_CB.ConnectionSSID), 0x0, sizeof(parking_CB.CON_CB.ConnectionSSID));
+            memset(&(parking_CB.CON_CB.ConnectionBSSID), 0x0, sizeof(parking_CB.CON_CB.ConnectionBSSID));
+        }
+        break;
+
+        case SL_WLAN_EVENT_PROVISIONING_STATUS:
+        {
+            /* Do nothing, this suppress provisioning event is because simplelink is configured to default state. */
+        }
+        break;
+
+        case SL_WLAN_EVENT_STA_ADDED:
+        {
+            memcpy(&(parking_CB.CON_CB.ConnectionBSSID), pWlanEvent->Data.STAAdded.Mac, SL_WLAN_BSSID_LENGTH);
+            UART_PRINT("\n\r[WLAN EVENT] STA was added to AP: BSSID: %x:%x:%x:%x:%x:%x\n\r",
+                    parking_CB.CON_CB.ConnectionBSSID[0],parking_CB.CON_CB.ConnectionBSSID[1],
+                    parking_CB.CON_CB.ConnectionBSSID[2],parking_CB.CON_CB.ConnectionBSSID[3],
+                    parking_CB.CON_CB.ConnectionBSSID[4],parking_CB.CON_CB.ConnectionBSSID[5]);
+        }
+        break;
+
+        case SL_WLAN_EVENT_STA_REMOVED:
+        {
+            memcpy(&(parking_CB.CON_CB.ConnectionBSSID), pWlanEvent->Data.STAAdded.Mac, SL_WLAN_BSSID_LENGTH);
+            UART_PRINT("\n\r[WLAN EVENT] STA was removed from AP: BSSID: %x:%x:%x:%x:%x:%x\n\r",
+                    parking_CB.CON_CB.ConnectionBSSID[0],parking_CB.CON_CB.ConnectionBSSID[1],
+                    parking_CB.CON_CB.ConnectionBSSID[2],parking_CB.CON_CB.ConnectionBSSID[3],
+                    parking_CB.CON_CB.ConnectionBSSID[4],parking_CB.CON_CB.ConnectionBSSID[5]);
+
+            memset(&(parking_CB.CON_CB.ConnectionBSSID), 0x0, sizeof(parking_CB.CON_CB.ConnectionBSSID));
+        }
+        break;
+
+        case SL_WLAN_EVENT_RXFILTER:
+        {
+            SlWlanEventRxFilterInfo_t  *triggred_filter = NULL;
+
+            triggred_filter = &(pWlanEvent->Data.RxFilterInfo) ;
+
+            UART_PRINT("\n\r[WLAN EVENT] Rx filter match triggered. Set filters in filter bitmap :0x%x.\n\r", triggred_filter->UserActionIdBitmap);
+
+            /*
+             *     User can write he's / her's rx filter match handler here.
+             *     Be advised, you can use the 'triggred_filter' structure info to determine which filter
+             *     has received a match. (Bit X is set if user action id X was passed to a filter that matched a packet.)
+             */
+        }
+        break;
+
+        case SL_WLAN_EVENT_P2P_DEVFOUND:
+        {
+            UART_PRINT("\n\r[WLAN EVENT] P2P Remote device found\n\r");
+            sem_post(&(parking_CB.P2P_CB.DeviceFound));
+        }
+        break;
+
+        case SL_WLAN_EVENT_P2P_REQUEST:
+        {
+            UART_PRINT("\n\r[WLAN EVENT] P2P Negotiation request received\n\r");
+
+            /* This information is needed to create connection*/
+            memset(&(parking_CB.P2P_CB.p2pPeerDeviceName), '\0', sizeof(parking_CB.P2P_CB.p2pPeerDeviceName));
+            memcpy(&parking_CB.P2P_CB.p2pPeerDeviceName,
+                    pWlanEvent->Data.P2PRequest.GoDeviceName,
+                    pWlanEvent->Data.P2PRequest.GoDeviceNameLen);
+
+            sem_post(&parking_CB.P2P_CB.RcvNegReq);
+        }
+        break;
+
+        case SL_WLAN_EVENT_P2P_CONNECT:
+        {
+            UART_PRINT("n\r[WLAN EVENT] P2P connection was successfully completed as CLIENT\n\r");
+            UART_PRINT("n\rBSSID is %02x:%02x:%02x:%02x:%02x:%02x\n\r",
+                                            pWlanEvent->Data.STAAdded.Mac[0],
+                                            pWlanEvent->Data.STAAdded.Mac[1],
+                                            pWlanEvent->Data.STAAdded.Mac[2],
+                                            pWlanEvent->Data.STAAdded.Mac[3],
+                                            pWlanEvent->Data.STAAdded.Mac[4],
+                                            pWlanEvent->Data.STAAdded.Mac[5]);
+
+            sem_post(&parking_CB.P2P_CB.RcvConReq);
+        }
+        break;
+
+        case SL_WLAN_EVENT_P2P_CLIENT_ADDED:
+        {
+            UART_PRINT("n\r[WLAN EVENT] P2P connection was successfully completed as GO\n\r");
+            UART_PRINT("n\rBSSID is %02x:%02x:%02x:%02x:%02x:%02x\n\r",
+                                            pWlanEvent->Data.P2PClientAdded.Mac[0],
+                                            pWlanEvent->Data.P2PClientAdded.Mac[1],
+                                            pWlanEvent->Data.P2PClientAdded.Mac[2],
+                                            pWlanEvent->Data.P2PClientAdded.Mac[3],
+                                            pWlanEvent->Data.P2PClientAdded.Mac[4],
+                                            pWlanEvent->Data.P2PClientAdded.Mac[5]);
+
+            sem_post(&parking_CB.P2P_CB.RcvConReq);
+        }
+        break;
+
+        case SL_WLAN_EVENT_P2P_DISCONNECT:
+        {
+            UART_PRINT("\n\r[WLAN EVENT] STA disconnected from device.\n\r");
+            CLR_STATUS_BIT(parking_CB.Status ,STATUS_BIT_CONNECTION);
+        }
+        break;
+
+        default:
+        {
+            UART_PRINT("\n\r[WLAN EVENT] Unexpected event [0x%x]\n\r", pWlanEvent->Id);
+        }
+        break;
+    }
+    //UART_PRINT(cmdPromptStr);
+}
+
+/*!
+    \brief          SimpleLinkNetAppEventHandler
+
+    This handler gets called whenever a Netapp event is reported
+    by the host driver / NWP. Here user can implement he's own logic
+    for any of these events. This handler is used by 'network_terminal'
+    application to show case the following scenarios:
+
+    1. Handling IPv4 / IPv6 IP address acquisition.
+    2. Handling IPv4 / IPv6 IP address Dropping.
+
+    \param          pNetAppEvent     -   pointer to Netapp event data.
+
+    \return         void
+
+    \note           For more information, please refer to: user.h in the porting
+                    folder of the host driver and the  CC3120/CC3220 NWP programmer's
+                    guide (SWRU455) section 5.7
+
+*/
+void SimpleLinkNetAppEventHandler(SlNetAppEvent_t *pNetAppEvent)
+{
+    if(!pNetAppEvent)
+    {
+        return;
+    }
+
+    switch(pNetAppEvent->Id)
+    {
+        case SL_NETAPP_EVENT_IPV4_ACQUIRED:
+        {
+            SlIpV4AcquiredAsync_t *pEventData = NULL;
+
+            SET_STATUS_BIT(parking_CB.Status, STATUS_BIT_IP_ACQUIRED);
+
+            /* Ip Acquired Event Data */
+            pEventData = &pNetAppEvent->Data.IpAcquiredV4;
+            parking_CB.CON_CB.IpAddr = pEventData->Ip ;
+
+            /* Gateway IP address */
+            parking_CB.CON_CB.GatewayIP = pEventData->Gateway;
+
+            UART_PRINT("\n\r[NETAPP EVENT] IP set to: IPv4=%d.%d.%d.%d , "
+                    "Gateway=%d.%d.%d.%d\n\r",
+
+                    SL_IPV4_BYTE(parking_CB.CON_CB.IpAddr,3),
+                    SL_IPV4_BYTE(parking_CB.CON_CB.IpAddr,2),
+                    SL_IPV4_BYTE(parking_CB.CON_CB.IpAddr,1),
+                    SL_IPV4_BYTE(parking_CB.CON_CB.IpAddr,0),
+
+                    SL_IPV4_BYTE(parking_CB.CON_CB.GatewayIP,3),
+                    SL_IPV4_BYTE(parking_CB.CON_CB.GatewayIP,2),
+                    SL_IPV4_BYTE(parking_CB.CON_CB.GatewayIP,1),
+                    SL_IPV4_BYTE(parking_CB.CON_CB.GatewayIP,0));
+
+            UART_PRINT("Before sem_post \n\r");
+            sem_post(&(parking_CB.CON_CB.ip4acquireEventSyncObj));
+            UART_PRINT("After sem_post \n\r");
+        }
+        break;
+
+        case SL_NETAPP_EVENT_IPV6_ACQUIRED:
+        {
+            uint32_t i = 0;
+
+            SET_STATUS_BIT(parking_CB.Status, STATUS_BIT_IPV6_ACQUIRED);
+
+            for(i = 0 ; i < 4 ; i++)
+            {
+                parking_CB.CON_CB.Ipv6Addr[i] = pNetAppEvent->Data.IpAcquiredV6.Ip[i];
+            }
+
+            UART_PRINT("\n\r[NETAPP EVENT] IP Acquired: IPv6=");
+
+            for(i = 0; i < 3 ; i++)
+            {
+                UART_PRINT("%04x:%04x:", ((parking_CB.CON_CB.Ipv6Addr[i]>>16) & 0xffff), parking_CB.CON_CB.Ipv6Addr[i] & 0xffff);
+            }
+
+            UART_PRINT("%04x:%04x", ((parking_CB.CON_CB.Ipv6Addr[3]>>16) & 0xffff), parking_CB.CON_CB.Ipv6Addr[3] & 0xffff);
+            UART_PRINT(lineBreak);
+            sem_post(&parking_CB.CON_CB.ip6acquireEventSyncObj);
+        }
+        break;
+
+        case SL_NETAPP_EVENT_DHCPV4_LEASED:
+        {
+            SET_STATUS_BIT(parking_CB.Status, STATUS_BIT_IP_LEASED);
+            SET_STATUS_BIT(parking_CB.Status, STATUS_BIT_IP_ACQUIRED);
+
+            parking_CB.CON_CB.StaIp = pNetAppEvent->Data.IpLeased.IpAddress;
+            UART_PRINT("\n\r[NETAPP EVENT] IP Leased to Client: IP=%d.%d.%d.%d \n\r",
+                        SL_IPV4_BYTE(parking_CB.CON_CB.StaIp ,3), SL_IPV4_BYTE(parking_CB.CON_CB.StaIp ,2),
+                        SL_IPV4_BYTE(parking_CB.CON_CB.StaIp ,1), SL_IPV4_BYTE(parking_CB.CON_CB.StaIp ,0));
+
+            sem_post(&(parking_CB.CON_CB.ip4acquireEventSyncObj));
+        }
+        break;
+
+        case SL_NETAPP_EVENT_DHCPV4_RELEASED:
+        {
+            UART_PRINT("\n\r[NETAPP EVENT] IP is released.\n\r");
+        }
+        break;
+
+        default:
+        {
+            UART_PRINT("\n\r[NETAPP EVENT] Unexpected event [0x%x] \n\r", pNetAppEvent->Id);
+        }
+        break;
+    }
+    //UART_PRINT(cmdPromptStr);
+}
+
+/*!
+    \brief          SimpleLinkHttpServerEventHandler
+
+    This handler gets called whenever a HTTP event is reported
+    by the NWP internal HTTP server.
+
+    \param          pHttpEvent       -   pointer to http event data.
+
+    \param          pHttpEvent       -   pointer to http response.
+
+    \return         void
+
+    \note           For more information, please refer to: user.h in the porting
+                    folder of the host driver and the  CC3120/CC3220 NWP programmer's
+                    guide (SWRU455) chapter 9.
+
+*/
+void SimpleLinkHttpServerEventHandler(SlNetAppHttpServerEvent_t *pHttpEvent,
+                                      SlNetAppHttpServerResponse_t *pHttpResponse)
+{
+    /* Unused in this application */
+}
+
+/*!
+    \brief          SimpleLinkGeneralEventHandler
+
+    This handler gets called whenever a general error is reported
+    by the NWP / Host driver. Since these errors are not fatal,
+    application can handle them.
+
+    \param          pDevEvent    -   pointer to device error event.
+
+    \return         void
+
+    \note           For more information, please refer to: user.h in the porting
+                    folder of the host driver and the  CC3120/CC3220 NWP programmer's
+                    guide (SWRU455) section 17.9.
+
+*/
+void SimpleLinkGeneralEventHandler(SlDeviceEvent_t *pDevEvent)
+{
+    if(!pDevEvent)
+    {
+        return;
+    }
+    /*
+      Most of the general errors are not FATAL are are to be handled
+      appropriately by the application
+    */
+    UART_PRINT("\n\r[GENERAL EVENT] - ID=[%d] Sender=[%d]\n\n",
+               pDevEvent->Data.Error.Code,
+               pDevEvent->Data.Error.Source);
+}
+
+/*!
+    \brief          SimpleLinkSockEventHandler
+
+    This handler gets called whenever a socket event is reported
+    by the NWP / Host driver.
+
+    \param          SlSockEvent_t    -   pointer to socket event data.
+
+    \return         void
+
+    \note           For more information, please refer to: user.h in the porting
+                    folder of the host driver and the  CC3120/CC3220 NWP programmer's
+                    guide (SWRU455) section 7.6.
+
+*/
+void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
+{
+    /* Unused in this application */
+}
+
+/*!
+    \brief          SimpleLinkFatalErrorEventHandler
+
+    This handler gets called whenever a socket event is reported
+    by the NWP / Host driver. After this routine is called, the user's
+    application must restart the device in order to recover.
+
+    \param          slFatalErrorEvent    -   pointer to fatal error event.
+
+    \return         void
+
+    \note           For more information, please refer to: user.h in the porting
+                    folder of the host driver and the  CC3120/CC3220 NWP programmer's
+                    guide (SWRU455) section 17.9.
+
+*/
+void SimpleLinkFatalErrorEventHandler(SlDeviceFatal_t *slFatalErrorEvent)
+{
+
+    switch (slFatalErrorEvent->Id)
+    {
+        case SL_DEVICE_EVENT_FATAL_DEVICE_ABORT:
+        {
+            UART_PRINT("\n\r[ERROR] - FATAL ERROR: Abort NWP event detected: "
+                        "AbortType=%d, AbortData=0x%x\n\r",
+                        slFatalErrorEvent->Data.DeviceAssert.Code,
+                        slFatalErrorEvent->Data.DeviceAssert.Value);
+        }
+        break;
+
+        case SL_DEVICE_EVENT_FATAL_DRIVER_ABORT:
+        {
+            UART_PRINT("\n\r[ERROR] - FATAL ERROR: Driver Abort detected. \n\r");
+        }
+        break;
+
+        case SL_DEVICE_EVENT_FATAL_NO_CMD_ACK:
+        {
+            UART_PRINT("\n\r[ERROR] - FATAL ERROR: No Cmd Ack detected "
+                        "[cmd opcode = 0x%x] \n\r",
+                                        slFatalErrorEvent->Data.NoCmdAck.Code);
+        }
+        break;
+
+        case SL_DEVICE_EVENT_FATAL_SYNC_LOSS:
+        {
+            UART_PRINT("\n\r[ERROR] - FATAL ERROR: Sync loss detected n\r");
+        }
+        break;
+
+        case SL_DEVICE_EVENT_FATAL_CMD_TIMEOUT:
+        {
+            UART_PRINT("\n\r[ERROR] - FATAL ERROR: Async event timeout detected "
+                        "[event opcode =0x%x]  \n\r",
+                                    slFatalErrorEvent->Data.CmdTimeout.Code);
+        }
+        break;
+
+        default:
+            UART_PRINT("\n\r[ERROR] - FATAL ERROR: Unspecified error detected \n\r");
+        break;
+    }
+}
+
+/*!
+    \brief          SimpleLinkNetAppRequestEventHandler
+
+    This handler gets called whenever a NetApp event is reported
+    by the NWP / Host driver. User can write he's logic to handle
+    the event here.
+
+    \param          pNetAppRequest     -   Pointer to NetApp request structure.
+
+    \param          pNetAppResponse    -   Pointer to NetApp request Response.
+
+    \note           For more information, please refer to: user.h in the porting
+                    folder of the host driver and the  CC3120/CC3220 NWP programmer's
+                    guide (SWRU455) section 17.9.
+
+    \return         void
+
+*/
+void SimpleLinkNetAppRequestEventHandler(SlNetAppRequest_t *pNetAppRequest, SlNetAppResponse_t *pNetAppResponse)
+{
+    /* Unused in this application */
+}
+
+/*!
+    \brief          SimpleLinkNetAppRequestMemFreeEventHandler
+
+    This handler gets called whenever the NWP is done handling with
+    the buffer used in a NetApp request. This allows the use of
+    dynamic memory with these requests.
+
+    \param          pNetAppRequest     -   Pointer to NetApp request structure.
+
+    \param          pNetAppResponse    -   Pointer to NetApp request Response.
+
+    \note           For more information, please refer to: user.h in the porting
+                    folder of the host driver and the  CC3120/CC3220 NWP programmer's
+                    guide (SWRU455) section 17.9.
+
+    \return         void
+
+*/
+void SimpleLinkNetAppRequestMemFreeEventHandler(uint8_t *buffer)
+{
+    /* Unused in this application */
+}
+
+// End Event handlers
+
+/*!
+    \brief          Configure SimpleLink to default state.
+
+    This routine configures the device to a default state.
+    It's important to note that this is one example for a 'restore to default state'
+    function, which meet the needs of this application, 'Network Terminal'. User who
+    wish to incorporate this function into he's app, must adjust the implementation
+    and make sure it meets he's needs.
+
+    \return         Upon successful completion, the function shall return 0.
+                    In case of failure, this function would return -1.
+
+*/
+int32_t ConfigureSimpleLinkToDefaultState()
+{
+     uint8_t                              ucConfigOpt;
+     uint8_t                              ucPower;
+     int32_t                              RetVal = -1;
+     int32_t                              Mode = -1;
+     uint32_t                             IfBitmap = 0;
+     SlWlanScanParamCommand_t             ScanDefault = {0};
+     SlWlanRxFilterOperationCommandBuff_t RxFilterIdMask = {{0}};
+
+     UART_PRINT("Turn NWP on \n\r");
+     /* Turn NWP on */
+     Mode = sl_Start(0, 0, 0);
+     retError(Mode, "sl_Start ");
+     ASSERT_ON_ERROR(Mode, DEVICE_ERROR);
+
+     if(Mode != ROLE_STA)
+     {
+         UART_PRINT("Set NWP role as STA \n\r");
+           /* Set NWP role as STA */
+           Mode = sl_WlanSetMode(ROLE_STA);
+           retError(Mode, "Set mode ");
+           ASSERT_ON_ERROR(Mode, WLAN_ERROR);
+
+           UART_PRINT("For changes to take affect, we restart the NWP \n\r");
+         /* For changes to take affect, we restart the NWP */
+         RetVal = sl_Stop(SL_STOP_TIMEOUT);
+         ASSERT_ON_ERROR(RetVal, DEVICE_ERROR);
+
+         Mode = sl_Start(0, 0, 0);
+         ASSERT_ON_ERROR(Mode, DEVICE_ERROR);
+     }
+
+     if(Mode != ROLE_STA)
+     {
+         UART_PRINT("Failed to configure device to it's default state");
+         return -1;
+     }
+
+     UART_PRINT("Set policy to auto only \n\r");
+     /* Set policy to auto only */
+     RetVal = sl_WlanPolicySet(SL_WLAN_POLICY_CONNECTION, SL_WLAN_CONNECTION_POLICY(1,0,0,0), NULL ,0);
+     ASSERT_ON_ERROR(RetVal, WLAN_ERROR);
+
+     /* Disable Auto Provisioning */
+     RetVal = sl_WlanProvisioning(SL_WLAN_PROVISIONING_CMD_STOP, 0xFF, 0, NULL, 0x0);
+     ASSERT_ON_ERROR(RetVal, WLAN_ERROR);
+
+     /* Delete existing profiles */
+     RetVal = sl_WlanProfileDel(0xFF);
+     ASSERT_ON_ERROR(RetVal, WLAN_ERROR);
+
+     /* enable DHCP client */
+     RetVal = sl_NetCfgSet(SL_NETCFG_IPV4_STA_ADDR_MODE, SL_NETCFG_ADDR_DHCP, 0, 0);
+     ASSERT_ON_ERROR(RetVal, NETAPP_ERROR);
+
+     /* Disable ipv6 */
+     IfBitmap = !(SL_NETCFG_IF_IPV6_STA_LOCAL | SL_NETCFG_IF_IPV6_STA_GLOBAL);
+     RetVal = sl_NetCfgSet(SL_NETCFG_IF, SL_NETCFG_IF_STATE, sizeof(IfBitmap),(const unsigned char *)&IfBitmap);
+     ASSERT_ON_ERROR(RetVal, NETAPP_ERROR);
+
+     /* Configure scan parameters to default */
+     ScanDefault.ChannelsMask = CHANNEL_MASK_ALL;
+     ScanDefault.RssiThreshold = RSSI_TH_MAX;
+
+     RetVal = sl_WlanSet(SL_WLAN_CFG_GENERAL_PARAM_ID, SL_WLAN_GENERAL_PARAM_OPT_SCAN_PARAMS, sizeof(ScanDefault), (uint8_t *)&ScanDefault);
+     ASSERT_ON_ERROR(RetVal, WLAN_ERROR);
+
+     /* Disable scans */
+     ucConfigOpt = SL_WLAN_SCAN_POLICY(0, 0);
+     RetVal = sl_WlanPolicySet(SL_WLAN_POLICY_SCAN , ucConfigOpt, NULL, 0);
+     ASSERT_ON_ERROR(RetVal, WLAN_ERROR);
+
+     /* Set TX power lvl to max */
+     ucPower = 0;
+     RetVal = sl_WlanSet(SL_WLAN_CFG_GENERAL_PARAM_ID, SL_WLAN_GENERAL_PARAM_OPT_STA_TX_POWER, 1, (uint8_t *)&ucPower);
+     ASSERT_ON_ERROR(RetVal, WLAN_ERROR);
+
+     /* Set NWP Power policy to 'normal' */
+     RetVal = sl_WlanPolicySet(SL_WLAN_POLICY_PM, SL_WLAN_NORMAL_POLICY, NULL, 0);
+     ASSERT_ON_ERROR(RetVal, WLAN_ERROR);
+
+     /* Unregister mDNS services */
+     RetVal = sl_NetAppMDNSUnRegisterService(0, 0, 0);
+     ASSERT_ON_ERROR(RetVal, NETAPP_ERROR);
+
+     /* Remove all 64 RX filters (8*8) */
+     memset(RxFilterIdMask.FilterBitmap , 0xFF, 8);
+
+     RetVal = sl_WlanSet(SL_WLAN_RX_FILTERS_ID, SL_WLAN_RX_FILTER_REMOVE, sizeof(SlWlanRxFilterOperationCommandBuff_t),(uint8_t *)&RxFilterIdMask);
+     ASSERT_ON_ERROR(RetVal, WLAN_ERROR);
+
+     /* Set NWP role as STA */
+     RetVal = sl_WlanSetMode(ROLE_STA);
+     ASSERT_ON_ERROR(RetVal, WLAN_ERROR);
+
+     /* For changes to take affect, we restart the NWP */
+     RetVal = sl_Stop(SL_STOP_TIMEOUT);
+     ASSERT_ON_ERROR(RetVal, DEVICE_ERROR);
+
+     Mode = sl_Start(0, 0, 0);
+     ASSERT_ON_ERROR(Mode, DEVICE_ERROR);
+
+     if(ROLE_STA != Mode)
+     {
+         UART_PRINT("Failed to configure device to it's default state");
+         return -1 ;
+     }
+     else
+     {
+         parking_CB.Role = ROLE_STA;
+         SET_STATUS_BIT(parking_CB.Status, STATUS_BIT_NWP_INIT);
+     }
+
+     return 0;
+}
+
+void PrintIPAddress(unsigned char ipv6, void *ip)
+{
+    uint32_t        *pIPv4;
+    uint8_t         *pIPv6;
+    int32_t          i=0;
+
+    if(!ip)
+    {
+        return;
+    }
+
+    if(ipv6)
+    {
+        pIPv6 = (uint8_t*) ip;
+
+        for(i = 0; i < 14; i+=2)
+        {
+            UART_PRINT("%02x%02x:", pIPv6[i], pIPv6[i+1]);
+        }
+
+        UART_PRINT("%02x%02x", pIPv6[i], pIPv6[i+1]);
+    }
+    else
+    {
+        pIPv4 = (uint32_t*)ip;
+        UART_PRINT("%d.%d.%d.%d", SL_IPV4_BYTE(*pIPv4,3), SL_IPV4_BYTE(*pIPv4,2),
+                                  SL_IPV4_BYTE(*pIPv4,1), SL_IPV4_BYTE(*pIPv4,0));
+    }
+    return;
+}
+
+int32_t ipv4AddressParse(char *str, uint32_t *ipv4ip)
+{
+    volatile int32_t i = 0;
+    uint32_t         n;
+    uint32_t         ipv4Address = 0;
+    char             *token;
+
+    token = strtok(str, ".");
+    if (token)
+    {
+        n = (int)strtoul(token, 0, 10);
+    }
+    else
+    {
+        return -1;
+    }
+
+    while(i < 4)
+    {
+       /* Check Whether IP is valid */
+       if((token != NULL) && (n < 256))
+       {
+           ipv4Address |= n;
+           if(i < 3)
+           {
+               ipv4Address = ipv4Address << 8;
+           }
+           token=strtok(NULL,".");
+           if (token)
+           {
+               n = (int)strtoul(token, 0, 10);
+           }
+           i++;
+       }
+       else
+       {
+           return -1;
+       }
+    }
+
+    *ipv4ip = ipv4Address;
+
+    //UART_PRINT("From parse function ")
+    return 0;
+}
+
+int32_t sem_wait_timeout(sem_t *sem, uint32_t Timeout)
+{
+    struct timespec abstime;
+    abstime.tv_nsec = 0 ;
+    abstime.tv_sec = 0 ;
+
+    /* Since POSIX timeout are relative and not absolute,
+     * take the current timestamp. */
+    clock_gettime(CLOCK_REALTIME, &abstime);
+    if ( abstime.tv_nsec < 0 )
+    {
+        abstime.tv_sec = Timeout;
+        return (sem_timedwait(sem , &abstime));
+    }
+
+    /* Add the amount of time to wait */
+    abstime.tv_sec += Timeout / 1000 ;
+    abstime.tv_nsec += (Timeout % 1000)*1000000;
+
+    abstime.tv_sec += (abstime.tv_nsec / 1000000000);
+    abstime.tv_nsec = abstime.tv_nsec % 1000000000;
+
+    /* Call the semaphore wait API */
+    return sem_timedwait(sem , &abstime);
+}
+
+/* Callback function for interrupt*/
+void Echo_Callback(uint_least8_t index)
+{
+    Echo_Echo = GPIO_read(Board_GPIO_Echo);
+    if(Echo_Echo == 1)
+    {
+        GPIO_write(Board_GPIO_G, RGB_ON);
+        Echo_Beg = Timer_getCount(sens_timer);
+    } else
+    {
+        GPIO_write(Board_GPIO_G, RGB_OFF);
+        Echo_End = Timer_getCount(sens_timer);
+        DistTime = Echo_End - Echo_Beg;
+        ans = GetDistance(DistTime);
+        //UART_PRINT(" beg: %d end: %d diff: %d\n\r", Echo_Beg, Echo_End, DistTime);
+    }
+    if(ans >= 5)
+    {
+        // 5 seconds reached, turn LED blue and BT on
+        GPIO_write(Board_GPIO_R, RGB_OFF);
+        GPIO_write(Board_GPIO_G, RGB_OFF);
+        GPIO_write(Board_GPIO_B, RGB_ON);
+        GPIO_write(Board_GPIO_BT, 1);
+
+        if(msgFlag == 0)
+        {
+            strcpy(ChangedBitSt, CHANGEDBIT_1);
+            strcpy(ParkingLotSt, ParkingLot);
+            strcpy(ParkingSpaceSt, ParkingSpace);
+            strcpy(StatusSt, CLOSED_SPACE);
+            SendStatusMessage();
+            msgFlag = 1;
+        }
+        strcpy(ChangedBitSt, CHANGEDBIT_0);
+
+    } else
+    {
+        GPIO_write(Board_GPIO_B, RGB_OFF);
+        GPIO_write(Board_GPIO_BT, 0);
+
+        if(msgFlag == 1)
+        {
+            strcpy(ChangedBitSt, CHANGEDBIT_1);
+            strcpy(ParkingLotSt, ParkingLot);
+            strcpy(ParkingSpaceSt, ParkingSpace);
+            strcpy(StatusSt, OPEN_SPACE);
+            SendStatusMessage();
+            msgFlag = 0;
+        }
+    }
+}
+
+void Test_Callback(uint_least8_t index)
+{
+    GPIO_toggle(Board_GPIO_TEST);
+}
+
+void *mainThread(void *arg0)
+{
+    int32_t             RetVal ;
+    pthread_attr_t      pAttrs_spawn;
+    struct sched_param  priParam;
+
+    /* Call driver init functions */
+    GPIO_init();
+    // I2C_init();
+    // SDSPI_init();
+    SPI_init();
+    UART_init();
+    Timer_init();
+    // Watchdog_init();
+
+    RetVal = initAppVariables();
+    /* Initialize UART terminal for UART_PRINT() */
+    InitTerm();
+/*
+    int32_t     RetVal;
+
+    RetVal = ConfigureSimpleLinkToDefaultState();
+    if(RetVal < 0)
+    {
+        // Handle Error
+        UART_PRINT("Network Terminal - Couldn't configure Network Processor\n");
+        return(NULL);
+    }
+*/
+    strcpy(ChangedBitSt, CHANGEDBIT_0);
+    strcpy(ParkingLotSt, ParkingLot);
+    strcpy(ParkingSpaceSt, ParkingSpace);
+    strcpy(StatusSt, OPEN_SPACE);
+    /* Configure the LED pin */
+    GPIO_setConfig(Board_GPIO_LED0, GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW);
+
+    /* Configure Echo Pin for interrupts */
+
+    GPIO_setConfig(Board_GPIO_Echo, GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_BOTH_EDGES);
+
+    /* Turn on user LED */
+    GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_ON);
+
+    GPIO_write(Board_GPIO_TEST, 0);
+    GPIO_write(Board_GPIO_TRIG, 0);
+    GPIO_write(Board_GPIO_R, RGB_OFF);
+    GPIO_write(Board_GPIO_G, RGB_OFF);
+    GPIO_write(Board_GPIO_B, RGB_OFF);
+    GPIO_write(Board_GPIO_BT, 0);
+
+    /* Create the sl_Task internal spawn thread */
+    pthread_attr_init(&pAttrs_spawn);
+    priParam.sched_priority = SPAWN_TASK_PRIORITY;
+    RetVal = pthread_attr_setschedparam(&pAttrs_spawn, &priParam);
+    RetVal |= pthread_attr_setstacksize(&pAttrs_spawn, TASK_STACK_SIZE);
+
+    /* The SimpleLink host driver architecture mandate spawn thread to be created prior to calling Sl_start (turning the NWP on). */
+    /* The purpose of this thread is to handle asynchronous events sent from the NWP.
+     * Every event is classified and later handled by the Host driver event handlers. */
+    RetVal = pthread_create(&gSpawn_thread, &pAttrs_spawn, sl_Task, NULL);
+    if(RetVal < 0)
+    {
+        /* Handle Error */
+         UART_PRINT("Network Terminal - Unable to create spawn thread \n");
+         return(NULL);
+    }
+
+    //RetVal = sl_Start(0,0,0);
+    //retError(RetVal, "Sl_Start 1");
+    RetVal = ConfigureSimpleLinkToDefaultState();
+    if(RetVal < 0)
+    {
+        // Handle Error
+        UART_PRINT("Network Terminal - Couldn't configure Network Processor\n");
+        return(NULL);
+    }
+    retError(RetVal, "Configure");
+    UART_PRINT("Wifi Connection Started \n\r");
+    Wifi_Connect();
+
+    Socket_Connect();
+
+    /* Configure timer params */
+    Timer_Params_init(&sens_params);
+    sens_params.period = 600000; /* .6s */
+    //sens_params.period = 5000000; /* 5s */
+    sens_params.periodUnits = Timer_PERIOD_US;
+    sens_params.timerMode = Timer_CONTINUOUS_CALLBACK;
+    /* runs this function every time the timer expires and then restarts timer */
+    //sens_params.timerCallback = timerCallback;
+    //sens_params.timerCallback = distCallback;
+    //sens_params.timerCallback = RGBTest;
+    //sens_params.timerCallback = BT_Test;
+    //sens_params.timerCallback = StopWatch_Test;
+    sens_params.timerCallback = TRIG_PULSE;
+
+    /* Open timer to be started with Timer_Start() */
+    sens_timer = Timer_open(Board_TIMER0, &sens_params);
+
+    //inputTest();
+    /*
+    while(1)
+    {
+        exPulse(500000);
+    }
+    */
+
+    /* callback and interrupt command */
+    GPIO_setCallback(Board_GPIO_Echo, Echo_Callback);
+
+    GPIO_enableInt(Board_GPIO_Echo);
+
+    /* Starting timer and checking for errors */
+    if (sens_timer == NULL) {
+        /* Failed to initialized timer */
+        UART_PRINT("Sensor Timer failed to initialize \n\r");
+        while (1);
+    }
+
+    if (Timer_start(sens_timer) == Timer_STATUS_ERROR) {
+        /* Failed to start timer */
+        UART_PRINT("Fail to start sensor timer \n\r");
+        while (1);
+    }
+
+    return (NULL);
+}
+
+void timerCallback(Timer_Handle myHandle)
+{
+    /* 10 usecond delay */
+    //useconds_t time = 10;
+    ZeroHour++;
+    GPIO_toggle(Board_GPIO_TEST);
+    /* Setting a 10 us pulse
+    GPIO_write(Board_GPIO_TEST, 1);
+    usleep(time);
+    GPIO_write(Board_GPIO_TEST, 0);
+     */
+
+    /* Alternate Red LED every 1.2s */
+    if(ZeroHour >= 2)
+    {
+        GPIO_toggle(Board_GPIO_LED0);
+        ZeroHour = 0;
+    }
+}
+
+
+void distCallback(Timer_Handle myHandle)
+{
+    // 10 us pulse
+    setPulse(10);
+    // Wait for Echo to go high
+    while(break_it == 0)
+    {
+        Echo_Echo = GPIO_read(Board_GPIO_Echo);
+
+        if(Echo_Echo == 0)
+        {
+           if(Echo_1 == 0)
+           {
+               // No Echo received yet
+               DoNothing();
+           } else
+           {
+               // Echo signal dropped, calculate the distance
+               GPIO_write(Board_GPIO_TEST, 0);
+               Echo_End = Timer_getCount(sens_timer);
+               DistTime = Echo_End - Echo_Beg;
+               UART_PRINT(" %d \n\r", DistTime);
+               ans = GetDistance(DistTime);
+               if(ans >= 5)
+               {
+                   // 5 seconds reached, turn LED blue and BT on
+                   GPIO_write(Board_GPIO_R, RGB_OFF);
+                   GPIO_write(Board_GPIO_G, RGB_OFF);
+                   GPIO_write(Board_GPIO_B, RGB_ON);
+                   GPIO_write(Board_GPIO_BT, 1);
+               } else
+               {
+                   GPIO_write(Board_GPIO_B, RGB_OFF);
+                   GPIO_write(Board_GPIO_BT, 0);
+               }
+               break_it = 1;
+               break;
+           }
+        } else
+        {
+            if(Echo_1 == 0)
+            {
+                // Started receiving echo signal, start timer
+                Echo_Beg = Timer_getCount(sens_timer);
+                GPIO_write(Board_GPIO_TEST, 1);
+            } else
+            {
+                // Still receiving echo signal
+                DoNothing();
+            }
+        }
+
+        Echo_1 = Echo_Echo;
+    }
+
+    break_it = 0;
+}
+
+void BT_Test(Timer_Handle myHandle)
+{
+    ZeroHour++;
+    if(ZeroHour >= 5)
+    {
+        GPIO_toggle(Board_GPIO_BT);
+        ZeroHour = 0;
+    }
+}
+
+void StopWatch_Test(Timer_Handle myHandle)
+{
+    Echo_Beg = Timer_getCount(sens_timer);
+    exPulse(5000);
+    Echo_End = Timer_getCount(sens_timer);
+    DistTime = Echo_End - Echo_Beg;
+    UART_PRINT(" Beg: %d End: %d Diff: %d \n\r", Echo_Beg, Echo_End, DistTime);
+}
+
+void TRIG_PULSE(Timer_Handle myHandle)
+{
+    // Send a 10 us pulse to trig pin
+    setPulse(10);
+
+    /////////// Message format work
+    ZeroHour++;
+    if(ZeroHour >= 10)
+    {
+        SendStatusMessage();
+        ZeroHour = 0;
+    }
+}
+
+void exPulse(useconds_t time)
+{
+    GPIO_write(Board_GPIO_TEST, 1);
+    usleep(time);
+    GPIO_write(Board_GPIO_TEST, 0);
+    usleep(time);
+    return;
+}
+
+void setPulse(useconds_t time)
+{
+    GPIO_write(Board_GPIO_TRIG, 1);
+    usleep(time);
+    GPIO_write(Board_GPIO_TRIG, 0);
+    return;
+}
+
+void DoNothing(void)
+{
+    return;
+}
+
+int GetDistance(uint32_t distime)
+{
+    double time_s = distime / 1000000.0;
+    double dist = 17150 * time_s;
+    //UART_PRINT(" time: %f dist: %f \n\r", time_s, dist);
+    if(dist < THRESHOLD)
+    {
+        GPIO_write(Board_GPIO_R, RGB_ON);
+        GPIO_write(Board_GPIO_G, RGB_OFF);
+        BTcount++;
+    } else
+    {
+        GPIO_write(Board_GPIO_R, RGB_OFF);
+        GPIO_write(Board_GPIO_G, RGB_ON);
+        GPIO_write(Board_GPIO_B, RGB_OFF);
+        strcpy(ChangedBitSt, CHANGEDBIT_0);
+        BTcount = 0;
+    }
+    return BTcount;
+}
+
+void inputTest(Timer_Handle myHandle)
+{
+    // Testing Input for Input pins
+    uint_fast8_t LED_ON;
+
+    while(1)
+    {
+        // P53
+        //LED_ON = GPIO_read(Board_GPIO_INTEST);
+
+        // Sw3
+        LED_ON = GPIO_read(Board_GPIO_BUTTON0);
+
+        if(LED_ON == 1)
+        {
+            GPIO_write(Board_GPIO_TEST, 1);
+        } else
+        {
+            GPIO_write(Board_GPIO_TEST, 0);
+        }
+    }
+}
+
+void RGBTest(Timer_Handle myHandle)
+{
+    if(i == 0)
+    {
+        GPIO_write(Board_GPIO_R, RGB_ON);
+        GPIO_write(Board_GPIO_G, RGB_OFF);
+        GPIO_write(Board_GPIO_B, RGB_OFF);
+    } else if(i == 1)
+    {
+        GPIO_write(Board_GPIO_R, RGB_OFF);
+        GPIO_write(Board_GPIO_G, RGB_ON);
+        GPIO_write(Board_GPIO_B, RGB_OFF);
+    } else
+    {
+        GPIO_write(Board_GPIO_R, RGB_OFF);
+        GPIO_write(Board_GPIO_G, RGB_OFF);
+        GPIO_write(Board_GPIO_B, RGB_ON);
+    }
+    i++;
+    if(i >= 3)
+    {
+        i = 0;
+    }
+}
+
+
+void Wifi_Connect(void)
+{
+    SlWlanSecParams_t secParams = {0};
+    int32_t ret = 0;
+
+    secParams.Key = WIFI_KEY;
+    secParams.KeyLen = strlen(WIFI_KEY);
+    secParams.Type = SL_WLAN_SEC_TYPE_WPA_WPA2;
+    //secParams.Type = SL_WLAN_SEC_TYPE_OPEN;
+
+    if(parking_CB.Role != ROLE_STA)
+    {
+        ret = sl_WlanSetMode(ROLE_STA);
+        //ASSERT_AND_CLEAN_CONNECT(ret, WLAN_ERROR, &ConnectParams);
+        retError(ret, "WLAN set STA");
+
+        ret = sl_Stop(SL_STOP_TIMEOUT);
+        //ASSERT_AND_CLEAN_CONNECT(ret, DEVICE_ERROR, &ConnectParams);
+        retError(ret, "SL stop");
+
+        ret = sl_Start(0, 0, 0);
+        //ASSERT_AND_CLEAN_CONNECT(ret, DEVICE_ERROR, &ConnectParams);
+        retError(ret, "SL start");
+    }
+    /* Here wer'e in STA mode */
+    parking_CB.Role = ROLE_STA ;
+
+    ret = sl_WlanConnect((signed char*)WIFI_SSID, strlen(WIFI_SSID), 0, &secParams, 0);
+    //ASSERT_ON_ERROR(ret, WLAN_ERROR);
+    retError(ret, "Wifi connection");
+
+    UART_PRINT("Trying to connect to AP : %s\n\r", WIFI_SSID);
+
+    /*
+    if(!IS_CONNECTED(parking_CB.Status))
+    {
+
+        ret = sem_wait_timeout(&parking_CB.CON_CB.connectEventSyncObj, WLAN_EVENT_TOUT);
+        if(ret == TIMEOUT_SEM)
+        {
+            UART_PRINT("\n\r[wlanconnect] : Failed to connect to AP: %s\n\r", WIFI_SSID);
+            //FreeConnectCmd(&ConnectParams);
+            return;
+        }
+
+        UART_PRINT("What the hecking heck man! \n\r");
+    }
+    */
+    return;
+}
+
+void retError(int32_t val, char* message)
+{
+    if(val < 0)
+    {
+        UART_PRINT("%s Error: %d \n\r", message, val);
+    } else
+    {
+        UART_PRINT("%s success \n\r", message);
+    }
+    return;
+}
+
+// Right beacon 66420, first two demos
+// Left beacon 1738, last demo
+
+void FreeConnectCmd(ConnectCmd_t *ConnectParams)
+{
+    if (ConnectParams->ssid != NULL)
+    {
+        free(ConnectParams->ssid);
+        ConnectParams->ssid = NULL;
+    }
+
+    if (ConnectParams->ip != NULL)
+    {
+        free(ConnectParams->ip);
+        ConnectParams->ip = NULL;
+    }
+
+    if (ConnectParams->gw != NULL)
+    {
+        free(ConnectParams->gw);
+        ConnectParams->gw = NULL;
+    }
+
+    if (ConnectParams->dns != NULL)
+    {
+        free(ConnectParams->dns);
+        ConnectParams->dns = NULL;
+    }
+
+    if (ConnectParams->secParams.Key != NULL)
+    {
+        free(ConnectParams->secParams.Key);
+        ConnectParams->secParams.Key = NULL;
+    }
+
+    if (ConnectParams->secParamsEnt.User != NULL)
+    {
+        free(ConnectParams->secParamsEnt.User);
+        ConnectParams->secParamsEnt.User = NULL;
+    }
+
+    return;
+}
+
+int32_t    initAppVariables(void)
+{
+    int32_t ret = 0;
+
+    parking_CB.Status = 0 ;
+    parking_CB.Role = ROLE_RESERVED;
+    parking_CB.Exit = FALSE;
+
+    memset(&parking_CB.CmdBuffer, 0x0, CMD_BUFFER_LEN);
+    memset(&parking_CB.gDataBuffer, 0x0, sizeof(parking_CB.gDataBuffer));
+    memset(&parking_CB.CON_CB, 0x0, sizeof(parking_CB.CON_CB));
+
+    ret = sem_init(&parking_CB.CON_CB.connectEventSyncObj,    0, 0);
+    if(ret != 0)
+    {
+        //SHOW_WARNING(ret, OS_ERROR);
+        retError(ret, "sem init 1");
+        return -1;
+    }
+
+    ret = sem_init(&parking_CB.CON_CB.eventCompletedSyncObj,  0, 0);
+    if(ret != 0)
+    {
+        retError(ret, "sem init 2");
+        return -1;
+    }
+
+    ret = sem_init(&parking_CB.CON_CB.ip4acquireEventSyncObj, 0, 0);
+    if(ret != 0)
+    {
+        retError(ret, "sem init 3");
+        return -1;
+    }
+
+    ret = sem_init(&parking_CB.CON_CB.ip6acquireEventSyncObj, 0, 0);
+    if(ret != 0)
+    {
+        retError(ret, "sem init 4");
+        return -1;
+    }
+
+    memset(&parking_CB.P2P_CB, 0x0, sizeof(parking_CB.P2P_CB));
+
+    ret = sem_init(&parking_CB.P2P_CB.DeviceFound, 0, 0);
+    if(ret != 0)
+    {
+        retError(ret, "sem init 5");
+        return -1;
+    }
+
+    ret = sem_init(&parking_CB.P2P_CB.RcvConReq, 0, 0);
+    if(ret != 0)
+    {
+        retError(ret, "sem init 6");
+        return -1;
+    }
+
+    ret = sem_init(&parking_CB.P2P_CB.RcvNegReq, 0, 0);
+    if(ret != 0)
+    {
+        retError(ret, "sem init 7");
+        return -1;
+    }
+
+    ret = sem_init(&parking_CB.WowlanSleepSem, 0, 0);
+    if(ret != 0)
+    {
+        retError(ret, "sem init 8");
+        return -1;
+    }
+
+    return ret;
+}
+
+/*
+#define ParkingLot "East"
+#define ParkingSpace "12"
+#define OPEN_SPACE "open"
+#define BUSY_SPACE "busy"
+#define CLOSED_SPACE "closed"
+#define BROKEN_SPACE "broken"
+#define CHANGEDBIT_0 '0'
+#define CHANGEDBIT_1 '1'
+
+char ChangedBitSt[10];
+char ParkingLotSt[10];
+char ParkingSpaceSt[10];
+char StatusSt[10];
+*/
+
+void SendStatusMessage(void)
+{
+    strcat(Status_Message, ChangedBitSt);
+    strcat(Status_Message, ParkingLotSt);
+    strcat(Status_Message, ":");
+    strcat(Status_Message, ParkingSpaceSt);
+    strcat(Status_Message, " ");
+    strcat(Status_Message, StatusSt);
+    UART_PRINT("%s \n\r", Status_Message);
+    TX_Send();
+    strcpy(Status_Message, "");
+    return;
+}
+
+void Socket_Connect(void)
+{
+    //uint32_t            ipv4 = 0;
+    SlSockAddr_t        *sa;
+    int32_t             addrSize;
+    sockAddr_t          sAddr;
+    int32_t             status;
+    int32_t             nonBlocking;
+    uint8_t             tempIP = 0;
+    int                 ret;
+    SendCmd_t           *SendCmdParams;
+    char                *ip = LAPTOP_IP;
+
+
+    SendCmdParams->numberOfPackets = 5;
+    SendCmdParams->udpFlag = FALSE;
+    SendCmdParams->server = TRUE;
+    SendCmdParams->nb = FALSE;
+    SendCmdParams->ipv6 = FALSE;
+    SendCmdParams->ip = NULL;
+
+    SendCmdParams->ip = (uint8_t *)calloc(sizeof(uint8_t), strlen((const char*)ip));
+    strcpy((char *)SendCmdParams->ip, ip);
+
+    //strcpy((char *)tempIP, LAPTOP_IP);
+    UART_PRINT("IP Address: [%s] [%s] \n\r", LAPTOP_IP, ip);
+    //memset(ipv4,0,5);
+    //ret = ipv4AddressParse((char*)tempIP, (uint32_t*)ipv4);
+    //ret = ipv4AddressParse(LAPTOP_IP, (uint32_t*)&ipv4);
+    ret = ipv4AddressParse((char*)SendCmdParams->ip, (uint32_t*)&SendCmdParams->ipAddr.ipv4);
+    SendCmdParams->ipv6 = FALSE;
+
+    //ip_t ipAddress = SendCmdParams.ipAddr;
+    PrintIPAddress(SendCmdParams->ipv6,(void*)&SendCmdParams->ipAddr.ipv4);
+
+    if(ret < 0)
+    {
+      UART_PRINT("\n\r[cmd Parser] : Invalid IP\n\r");
+      return;
+    }
+
+    /* filling the TCP server socket address */
+    sAddr.in4.sin_family = SL_AF_INET;
+
+    /* Since this is the client's side, we must know beforehand the IP address
+     * and the port of the server wer'e trying to connect.
+     */
+    sAddr.in4.sin_port = sl_Htons((unsigned short)PORTNUM);
+    //sAddr.in4.sin_addr.s_addr = sl_Htonl((unsigned int)LAPTOP_IP);
+    sAddr.in4.sin_addr.s_addr = sl_Htonl((unsigned int)SendCmdParams->ipAddr.ipv4);
+
+    sa = (SlSockAddr_t*)&sAddr.in4;
+    addrSize = sizeof(SlSockAddrIn6_t);
+
+    /* Get socket descriptor - this would be the
+     * socket descriptor for the TCP session.
+     */
+    sock = sl_Socket(sa->sa_family, SL_SOCK_STREAM, TCP_PROTOCOL_FLAGS);
+    retError(sock, "Socket set");
+
+#ifdef SECURE_SOCKET
+
+    SlDateTime_t dateTime;
+    dateTime.tm_day = DEVICE_DATE;
+    dateTime.tm_mon = DEVICE_MONTH;
+    dateTime.tm_year = DEVICE_YEAR;
+
+    sl_DeviceSet(SL_DEVICE_GENERAL, SL_DEVICE_GENERAL_DATE_TIME, sizeof(SlDateTime_t), (uint8_t *)(&dateTime));
+
+    /* Set the following to enable Server Authentication */
+    sl_SetSockOpt(sock,SL_SOL_SOCKET,SL_SO_SECURE_FILES_CA_FILE_NAME, ROOT_CA_CERT_FILE, strlen(ROOT_CA_CERT_FILE));
+
+#ifdef CLIENT_AUTHENTICATION
+    /* Set the following to pass Client Authentication */
+    sl_SetSockOpt(sock,SL_SOL_SOCKET,SL_SO_SECURE_FILES_PRIVATE_KEY_FILE_NAME, PRIVATE_KEY_FILE, strlen(PRIVATE_KEY_FILE));
+    sl_SetSockOpt(sock,SL_SOL_SOCKET,SL_SO_SECURE_FILES_CERTIFICATE_FILE_NAME, TRUSTED_CERT_CHAIN, strlen(TRUSTED_CERT_CHAIN));
+#endif
+#endif
+
+    /* Set socket as non-blocking socket (if needed):
+     * Non-blocking sockets allows user to handle other tasks rather than block
+     * on socket API calls. If an API call using the Non-blocking socket descriptor
+     * returns 'SL_ERROR_BSD_EAGAIN' - this indicate that the user should try the API again later.
+     */
+    if(TRUE == nb)
+    {
+        nonBlocking = TRUE;
+        status = sl_SetSockOpt(sock, SL_SOL_SOCKET, SL_SO_NONBLOCKING, &nonBlocking, sizeof(nonBlocking));
+
+        if(status < 0)
+        {
+            UART_PRINT("[line:%d, error:%d] %s\n\r", __LINE__, status, SL_SOCKET_ERROR);
+            sl_Close(sock);
+            return;
+        }
+    }
+    status = -1;
+
+    while(status < 0)
+    {
+        /* Calling 'sl_Connect' followed by server's
+         * 'sl_Accept' would start session with
+         * the TCP server. */
+        status = sl_Connect(sock, sa, addrSize);
+        if((status == SL_ERROR_BSD_EALREADY)&& (TRUE == nb))
+        {
+            sleep(1);
+            continue;
+        }
+        else if(status < 0)
+        {
+            UART_PRINT("[line:%d, error:%d] %s\n\r", __LINE__, status, SL_SOCKET_ERROR);
+            sl_Close(sock);
+            return;
+        }
+        break;
+    }
+    return;
+}
+
+void TX_Send(void)
+{
+    int32_t  buflen;
+    uint32_t sent_bytes = 0;
+    //uint32_t bytes_to_send = (numberOfPackets * BUF_LEN);
+    uint32_t bytes_to_send = strlen(Status_Message);
+    int32_t             status;
+
+    while(sent_bytes < bytes_to_send)
+    {
+        if (bytes_to_send - sent_bytes >= BUFF_SIZE)
+            buflen = BUFF_SIZE;
+        else
+            buflen  = bytes_to_send - sent_bytes;
+
+        /* Send packets to the server */
+        status = sl_Send(sock, &Status_Message, buflen, 0);
+        if((status == SL_ERROR_BSD_EAGAIN) && (TRUE == nb))
+        {
+            sleep(1);
+            continue;
+        }
+        else if(status < 0)
+        {
+            UART_PRINT("[line:%d, error:%d] %s\n\r", __LINE__, status, SL_SOCKET_ERROR);
+            sl_Close(sock);
+            return;
+        }
+        i++;
+        sent_bytes += status;
+    }
+
+    UART_PRINT("Sent %u packets (%u bytes) successfully\n\r",
+               i,
+               sent_bytes);
+    return;
+}

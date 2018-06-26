@@ -1,0 +1,400 @@
+/*
+ * Copyright (c) 2015-2017, Texas Instruments Incorporated
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * *  Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * *  Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * *  Neither the name of Texas Instruments Incorporated nor the names of
+ *    its contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ *  ======== empty.c ========
+ */
+
+/* For usleep() */
+#include <unistd.h>
+#include <stdint.h>
+#include <stddef.h>
+
+/* Driver Header files */
+#include <ti/drivers/GPIO.h>
+// #include <ti/drivers/I2C.h>
+// #include <ti/drivers/SDSPI.h>
+#include <ti/drivers/SPI.h>
+#include <ti/drivers/UART.h>
+// #include <ti/drivers/Watchdog.h>
+#include <ti/drivers/Timer.h>
+
+/* Board Header file */
+#include "Board.h"
+#include "uart_term.h"
+
+/*
+ *  ======== mainThread ========
+ */
+
+#define RGB_ON 0
+#define RGB_OFF 1
+#define THRESHOLD 4000
+
+/* Callback used for toggling the LED. */
+void timerCallback(Timer_Handle myHandle);
+void distCallback(Timer_Handle myHandle);
+void RGBTest(Timer_Handle myHandle);
+void inputTest(Timer_Handle myHandle);
+void BT_Test(Timer_Handle myHandle);
+void StopWatch_Test(Timer_Handle myHandle);
+void TRIG_PULSE(Timer_Handle myHandle);
+
+/* Other functions for sensor */
+void setPulse(useconds_t time);
+void DoNothing(void);
+int GetDistance(uint32_t distime);
+void exPulse(useconds_t time);
+
+
+
+int ZeroHour = 0;
+uint_fast8_t Echo_Echo = 0;
+uint_fast8_t Echo_1 = 0;
+uint32_t DistTime = 0;
+uint32_t Echo_Beg = 0;
+uint32_t Echo_End = 0;
+int ans = 0;
+int BTcount = 0;
+int break_it = 0;
+int i = 0;
+
+/* Initialize timer handlers and parameters */
+Timer_Handle sens_timer;
+Timer_Params sens_params;
+
+/* Callback function for interrupt*/
+void Echo_Callback(uint_least8_t index)
+{
+    Echo_Echo = GPIO_read(Board_GPIO_Echo);
+    if(Echo_Echo == 1)
+    {
+        GPIO_write(Board_GPIO_G, RGB_ON);
+        Echo_Beg = Timer_getCount(sens_timer);
+    } else
+    {
+        GPIO_write(Board_GPIO_G, RGB_OFF);
+        Echo_End = Timer_getCount(sens_timer);
+        DistTime = Echo_End - Echo_Beg;
+        ans = GetDistance(DistTime);
+        //UART_PRINT(" beg: %d end: %d diff: %d\n\r", Echo_Beg, Echo_End, DistTime);
+    }
+    if(ans >= 5)
+    {
+        // 5 seconds reached, turn LED blue and BT on
+        GPIO_write(Board_GPIO_R, RGB_OFF);
+        GPIO_write(Board_GPIO_G, RGB_OFF);
+        GPIO_write(Board_GPIO_B, RGB_ON);
+        GPIO_write(Board_GPIO_BT, 1);
+    } else
+    {
+        GPIO_write(Board_GPIO_B, RGB_OFF);
+        GPIO_write(Board_GPIO_BT, 0);
+    }
+}
+
+void Test_Callback(uint_least8_t index)
+{
+    GPIO_toggle(Board_GPIO_TEST);
+}
+
+void *mainThread(void *arg0)
+{
+
+    /* Call driver init functions */
+    GPIO_init();
+    // I2C_init();
+    // SDSPI_init();
+    SPI_init();
+    UART_init();
+    Timer_init();
+    // Watchdog_init();
+
+    /* Initialize UART terminal for UART_PRINT() */
+    InitTerm();
+
+    /* Configure the LED pin */
+    GPIO_setConfig(Board_GPIO_LED0, GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW);
+
+    /* Configure Echo Pin for interrupts */
+
+    GPIO_setConfig(Board_GPIO_Echo, GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_BOTH_EDGES);
+
+    /* Turn on user LED */
+    GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_ON);
+
+    GPIO_write(Board_GPIO_TEST, 0);
+    GPIO_write(Board_GPIO_TRIG, 0);
+    GPIO_write(Board_GPIO_R, RGB_OFF);
+    GPIO_write(Board_GPIO_G, RGB_OFF);
+    GPIO_write(Board_GPIO_B, RGB_OFF);
+    GPIO_write(Board_GPIO_BT, 0);
+
+    /* Configure timer params */
+    Timer_Params_init(&sens_params);
+    sens_params.period = 600000; /* .6s */
+    //sens_params.period = 5000000; /* 5s */
+    sens_params.periodUnits = Timer_PERIOD_US;
+    sens_params.timerMode = Timer_CONTINUOUS_CALLBACK;
+    /* runs this function every time the timer expires and then restarts timer */
+    //sens_params.timerCallback = timerCallback;
+    //sens_params.timerCallback = distCallback;
+    //sens_params.timerCallback = RGBTest;
+    //sens_params.timerCallback = BT_Test;
+    //sens_params.timerCallback = StopWatch_Test;
+    sens_params.timerCallback = TRIG_PULSE;
+
+    /* Open timer to be started with Timer_Start() */
+    sens_timer = Timer_open(Board_TIMER0, &sens_params);
+
+    //inputTest();
+    /*
+    while(1)
+    {
+        exPulse(500000);
+    }
+    */
+
+    /* callback and interrupt command */
+    GPIO_setCallback(Board_GPIO_Echo, Echo_Callback);
+
+    GPIO_enableInt(Board_GPIO_Echo);
+
+    /* Starting timer and checking for errors */
+    if (sens_timer == NULL) {
+        /* Failed to initialized timer */
+        UART_PRINT("Sensor Timer failed to initialize \n\r");
+        while (1);
+    }
+
+    if (Timer_start(sens_timer) == Timer_STATUS_ERROR) {
+        /* Failed to start timer */
+        UART_PRINT("Fail to start sensor timer \n\r");
+        while (1);
+    }
+
+    return (NULL);
+}
+
+void timerCallback(Timer_Handle myHandle)
+{
+    /* 10 usecond delay */
+    //useconds_t time = 10;
+    ZeroHour++;
+    GPIO_toggle(Board_GPIO_TEST);
+    /* Setting a 10 us pulse
+    GPIO_write(Board_GPIO_TEST, 1);
+    usleep(time);
+    GPIO_write(Board_GPIO_TEST, 0);
+     */
+
+    /* Alternate Red LED every 1.2s */
+    if(ZeroHour >= 2)
+    {
+        GPIO_toggle(Board_GPIO_LED0);
+        ZeroHour = 0;
+    }
+}
+
+
+void distCallback(Timer_Handle myHandle)
+{
+    // 10 us pulse
+    setPulse(10);
+    // Wait for Echo to go high
+    while(break_it == 0)
+    {
+        Echo_Echo = GPIO_read(Board_GPIO_Echo);
+
+        if(Echo_Echo == 0)
+        {
+           if(Echo_1 == 0)
+           {
+               // No Echo received yet
+               DoNothing();
+           } else
+           {
+               // Echo signal dropped, calculate the distance
+               GPIO_write(Board_GPIO_TEST, 0);
+               Echo_End = Timer_getCount(sens_timer);
+               DistTime = Echo_End - Echo_Beg;
+               UART_PRINT(" %d \n\r", DistTime);
+               ans = GetDistance(DistTime);
+               if(ans >= 5)
+               {
+                   // 5 seconds reached, turn LED blue and BT on
+                   GPIO_write(Board_GPIO_R, RGB_OFF);
+                   GPIO_write(Board_GPIO_G, RGB_OFF);
+                   GPIO_write(Board_GPIO_B, RGB_ON);
+                   GPIO_write(Board_GPIO_BT, 1);
+               } else
+               {
+                   GPIO_write(Board_GPIO_B, RGB_OFF);
+                   GPIO_write(Board_GPIO_BT, 0);
+               }
+               break_it = 1;
+               break;
+           }
+        } else
+        {
+            if(Echo_1 == 0)
+            {
+                // Started receiving echo signal, start timer
+                Echo_Beg = Timer_getCount(sens_timer);
+                GPIO_write(Board_GPIO_TEST, 1);
+            } else
+            {
+                // Still receiving echo signal
+                DoNothing();
+            }
+        }
+
+        Echo_1 = Echo_Echo;
+    }
+
+    break_it = 0;
+}
+
+void BT_Test(Timer_Handle myHandle)
+{
+    ZeroHour++;
+    if(ZeroHour >= 5)
+    {
+        GPIO_toggle(Board_GPIO_BT);
+        ZeroHour = 0;
+    }
+}
+
+void StopWatch_Test(Timer_Handle myHandle)
+{
+    Echo_Beg = Timer_getCount(sens_timer);
+    exPulse(5000);
+    Echo_End = Timer_getCount(sens_timer);
+    DistTime = Echo_End - Echo_Beg;
+    UART_PRINT(" Beg: %d End: %d Diff: %d \n\r", Echo_Beg, Echo_End, DistTime);
+}
+
+void TRIG_PULSE(Timer_Handle myHandle)
+{
+    // Send a 10 us pulse to trig pin
+    setPulse(10);
+}
+
+void exPulse(useconds_t time)
+{
+    GPIO_write(Board_GPIO_TEST, 1);
+    usleep(time);
+    GPIO_write(Board_GPIO_TEST, 0);
+    usleep(time);
+    return;
+}
+
+void setPulse(useconds_t time)
+{
+    GPIO_write(Board_GPIO_TRIG, 1);
+    usleep(time);
+    GPIO_write(Board_GPIO_TRIG, 0);
+    return;
+}
+
+void DoNothing(void)
+{
+    return;
+}
+
+int GetDistance(uint32_t distime)
+{
+    double time_s = distime / 1000000.0;
+    double dist = 17150 * time_s;
+    UART_PRINT(" time: %f dist: %f \n\r", time_s, dist);
+    if(dist < THRESHOLD)
+    {
+        GPIO_write(Board_GPIO_R, RGB_ON);
+        GPIO_write(Board_GPIO_G, RGB_OFF);
+        BTcount++;
+    } else
+    {
+        GPIO_write(Board_GPIO_R, RGB_OFF);
+        GPIO_write(Board_GPIO_G, RGB_ON);
+        GPIO_write(Board_GPIO_B, RGB_OFF);
+        BTcount = 0;
+    }
+    return BTcount;
+}
+
+void inputTest(Timer_Handle myHandle)
+{
+    // Testing Input for Input pins
+    uint_fast8_t LED_ON;
+
+    while(1)
+    {
+        // P53
+        //LED_ON = GPIO_read(Board_GPIO_INTEST);
+
+        // Sw3
+        LED_ON = GPIO_read(Board_GPIO_BUTTON0);
+
+        if(LED_ON == 1)
+        {
+            GPIO_write(Board_GPIO_TEST, 1);
+        } else
+        {
+            GPIO_write(Board_GPIO_TEST, 0);
+        }
+    }
+}
+
+void RGBTest(Timer_Handle myHandle)
+{
+    if(i == 0)
+    {
+        GPIO_write(Board_GPIO_R, RGB_ON);
+        GPIO_write(Board_GPIO_G, RGB_OFF);
+        GPIO_write(Board_GPIO_B, RGB_OFF);
+    } else if(i == 1)
+    {
+        GPIO_write(Board_GPIO_R, RGB_OFF);
+        GPIO_write(Board_GPIO_G, RGB_ON);
+        GPIO_write(Board_GPIO_B, RGB_OFF);
+    } else
+    {
+        GPIO_write(Board_GPIO_R, RGB_OFF);
+        GPIO_write(Board_GPIO_G, RGB_OFF);
+        GPIO_write(Board_GPIO_B, RGB_ON);
+    }
+    i++;
+    if(i >= 3)
+    {
+        i = 0;
+    }
+}
