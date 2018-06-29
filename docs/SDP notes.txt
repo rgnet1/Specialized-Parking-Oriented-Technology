@@ -3,6 +3,14 @@ Pi: hellothere
 
 ssh pi@192.168.137.65
 
+
+To give the Pi a static address:
+
+	The file /etc/dhcpcd-old.conf contains the proper syntax for setting up a static IP
+	Backup the original one. 
+	Lastly, "sudo reboot now"
+
+
 INSERT INTO [table] ([column], [column]) VALUES ('[value]', [value]');
 
 INSERT INTO spaces (Spots, Status, BT_String,Spot_Type,Daily_Rate, Parking_Lot, Complete, Gateway)
