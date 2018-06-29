@@ -1,5 +1,5 @@
 ifconfig eth0 10.0.0.1/24
-Pi: wristrockets
+Pi: hellothere
 
 ssh pi@192.168.137.65
 
